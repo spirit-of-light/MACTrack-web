@@ -134,10 +134,11 @@
      continues the casing's top-left cut (the line x + y = 12px in casing coordinates, extended upward), so casing bevel and
      tab edge form one line. Bright edge on the top, the diagonal and the right side (straight, no cut). The tab overlaps
      only the casing's outermost light line (1.5px) and paints over it. A vent fills the rest of the row. */
-  .list-h { --th: 26px; position: relative; z-index: 1; display: flex; align-items: center; gap: .7rem;
+  .list-h { --th: 26px; position: relative; z-index: 1; display: flex; align-items: center; gap: 7px; /* = vent to panel edge */
     margin: 0 0 -1.5px; padding-left: 10.5px; /* where the cut line crosses 1.5px into the casing */
     font: .62rem var(--display); letter-spacing: .32em; text-transform: uppercase; color: var(--label); }
-  .list-h .vent { margin-bottom: 1.5px; }
+  /* vent level with the tab: same top, ending where the casing's light edge line begins (the tab's 1.5px overlap) */
+  .list-h .vent { align-self: flex-start; height: calc(var(--th) - 1.5px); }
   .list-h .tab { position: relative; isolation: isolate; display: inline-flex; align-items: center; gap: .55rem;
     height: var(--th); box-sizing: border-box; padding: 0 .7rem 0 calc(var(--th) + .3rem);
     background: #ABABAB; /* edge, same as the casing's outer edge */
