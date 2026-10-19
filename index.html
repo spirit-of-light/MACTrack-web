@@ -139,7 +139,9 @@
   .chips button::before { content: ''; position: absolute; right: 0; top: 0; bottom: 0; width: 1.5rem; pointer-events: none;
     background: repeating-linear-gradient(135deg, rgba(255, 255, 255, .09) 0 1px, transparent 1px 3px);
     clip-path: polygon(100% 0, 100% 100%, 0 100%); }
-  .chips button.course::before { background: repeating-linear-gradient(135deg, var(--c) 0 1.5px, transparent 1.5px 3px); }
+  /* Course buttons: the triangle is filled with horizontal lines in the course colour, and a line of it runs along the bottom */
+  .chips button.course::before { background: repeating-linear-gradient(0deg, var(--c) 0 1px, transparent 1px 3px); }
+  .chips button.course { box-shadow: inset 0 1px 0 var(--recess-hi), inset 0 -2px 0 var(--c); }
   .chips button.eye::before { content: none; }
   .chips button:hover { color: var(--on-primary); background: linear-gradient(180deg, #474747, #3A3A3A 60%, #2E2E2E); }
   .chips .off { opacity: .5; }
