@@ -18,10 +18,16 @@
     --label: #EDEDED; --label-dim: #9C9C9C; /* --label on --chassis is about 4.9:1 */
     --primary: #7A013C; --primary-hi: #9C1A55; --primary-lo: #4E0026; --on-primary: #FFFFFF;
     --led: #E0457F; --led-glow: rgba(224, 69, 127, .55); --led-text: #FF7FA8; /* --led-text: LED colour as text on screens, about 6:1 */
-    --amber: #F2B134;
+    --amber: #F2B134; --led-ok: #57E389; /* --led-ok: a source synced fine */
     --overdue-bg: rgba(224, 69, 127, .16); --overdue-text: var(--led-text); --upcoming-bg: rgba(242, 177, 52, .10);
     --weekend-bg: var(--screen-weekend);
     --display: Michroma, 'Chakra Petch', sans-serif;
+    --bracket: #4F7887; /* corner marks on screens */
+    /* LEDs: radial-gradient dots, so no rounded corners are needed */
+    --led-off: radial-gradient(circle, #5A5A5A 0 2.5px, #2A2A2A 3px 4px, transparent 4.5px);
+    --led-on: radial-gradient(circle, #FFE3EE 0 1px, var(--led) 2px 3px, var(--led-glow) 3.5px, transparent 5px);
+    --led-on-ok: radial-gradient(circle, #E6FFEE 0 1px, var(--led-ok) 2px 3px, rgba(87, 227, 137, .5) 3.5px, transparent 5px);
+    --led-on-amber: radial-gradient(circle, #FFF4D6 0 1px, var(--amber) 2px 3px, rgba(242, 177, 52, .5) 3.5px, transparent 5px);
   }
   html { overscroll-behavior: none; scrollbar-color: var(--chassis-hi) var(--recess); } /* no rubber-band bounce (macOS) */
   /* Brushed gunmetal: fine horizontal grain over the chassis grey */
@@ -65,11 +71,18 @@
   td input[type=number], #add input[type=number] { appearance: textfield; -moz-appearance: textfield; }
   td input[type=number]::-webkit-inner-spin-button, #add input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
   tr.changed td:first-child { box-shadow: inset 3px 0 var(--led); } /* unsaved edits */
-  #edit { display: inline-flex; align-items: center; gap: .4rem; margin-top: 1rem; }
+  #edit { display: inline-flex; align-items: center; gap: .4rem; }
 
   /* Screens: teal display panels set into the chassis */
   .screen, .items, #grades, #sources, #calendar, .next {
-    background: var(--screen); color: var(--screen-text);
+    background:
+      linear-gradient(var(--bracket), var(--bracket)) right 2px top 2px / 10px 1px no-repeat,
+      linear-gradient(var(--bracket), var(--bracket)) right 2px top 2px / 1px 10px no-repeat,
+      linear-gradient(var(--bracket), var(--bracket)) left 2px bottom 2px / 10px 1px no-repeat,
+      linear-gradient(var(--bracket), var(--bracket)) left 2px bottom 2px / 1px 10px no-repeat,
+      repeating-linear-gradient(0deg, rgba(255, 255, 255, .025) 0 1px, transparent 1px 3px), /* CRT scanlines */
+      var(--screen);
+    color: var(--screen-text);
     box-shadow: inset 0 0 0 1px var(--recess-lo), inset 2px 2px 0 #06141A, 0 1px 0 var(--chassis-hi); }
 
   /* Section labels: tiny wide-tracked caps between rows of hollow blocks */
@@ -78,6 +91,8 @@
   .list-h::before, .list-h::after { content: ''; height: .5rem; flex: 0 0 2.6rem; border: 1px solid var(--label-dim); border-width: 1px 0;
     background: repeating-linear-gradient(90deg, var(--label-dim) 0 1px, transparent 1px 10px, var(--label-dim) 10px 11px, transparent 11px 13px); }
   .list-h::after { flex: 1; }
+  .list-h .count { font: 600 .7rem 'Chakra Petch', sans-serif; letter-spacing: .1em; color: var(--label); padding: .1rem .35rem;
+    background: var(--recess); box-shadow: inset 1px 1px 0 var(--recess-lo), inset -1px -1px 0 var(--recess-hi); }
 
   #sources, #grades { margin-top: 2rem; width: auto; }
   #sources { color: var(--screen-muted); }
@@ -106,9 +121,14 @@
     border: 1px solid var(--recess-lo); background: linear-gradient(180deg, #3D3D3D, var(--recess) 60%, #2A2A2A);
     box-shadow: inset 0 1px 0 var(--recess-hi); }
   .chips button::after { content: ''; position: absolute; right: .45rem; top: 50%; width: 10px; height: 10px; margin-top: -5px;
-    background: radial-gradient(circle, #5A5A5A 0 2.5px, #2A2A2A 3px 4px, transparent 4.5px); } /* LED off */
+    background: var(--led-off); } /* LED off */
   .chips button[aria-pressed=true] { color: var(--on-primary); background: linear-gradient(180deg, #4A1A30, #2E0F1D 60%, #22040F); }
-  .chips button[aria-pressed=true]::after { background: radial-gradient(circle, #FFE3EE 0 1px, var(--led) 2px 3px, var(--led-glow) 3.5px, transparent 5px); }
+  .chips button[aria-pressed=true]::after { background: var(--led-on); }
+  /* Stippled triangle beside the LED, as on the reference tabs */
+  .chips button::before { content: ''; position: absolute; right: 1.3rem; top: 0; bottom: 0; width: 1.4rem; pointer-events: none;
+    background: repeating-linear-gradient(135deg, rgba(255, 255, 255, .09) 0 1px, transparent 1px 3px);
+    clip-path: polygon(100% 0, 100% 100%, 0 100%); }
+  .chips button.eye::before { content: none; }
   .chips button:hover { color: var(--on-primary); background: linear-gradient(180deg, #474747, #3A3A3A 60%, #2E2E2E); }
   .chips button[aria-pressed=true]:hover { background: linear-gradient(180deg, #5A2038, #3A1424 60%, #2A0614); }
   .chips button.course { border-left: 4px solid var(--c); } /* colour edge only on course buttons */
@@ -143,9 +163,9 @@
   .editing col.done { width: 17px; } .editing col.type { width: 7rem; } .editing col.due { width: 15.5rem; }
   .editing col.left { width: 6rem; } .editing col.weight { width: 4rem; } .editing col.mark { width: 7rem; }
   /* Due cell: date right-aligned in a slot as wide as the widest date, so the dots line up */
-  div.due { display: grid; grid-template-columns: var(--date-w, max-content) 6px max-content; gap: .35em; align-items: center; }
+  div.due { display: grid; grid-template-columns: var(--date-w, max-content) 7px max-content; gap: .35em; align-items: center; }
   div.due span:first-child { text-align: right; }
-  div.due svg { width: 6px; height: 6px; color: var(--led); }
+  div.due svg { width: 7px; height: 7px; color: var(--led); }
   tr.overdue { background: var(--overdue-bg); box-shadow: inset 3px 0 var(--overdue-text); }
   tr.overdue td:nth-child(6) { color: var(--overdue-text); font-weight: 600; } /* "… overdue" in Time left */
   tr.upcoming { background: var(--upcoming-bg); box-shadow: inset 3px 0 var(--amber); }
@@ -169,6 +189,8 @@
   .day h3 { font: .56rem var(--display); letter-spacing: .12em; text-transform: uppercase; margin: 0 0 .35rem; color: var(--screen-muted); }
   .day.today { box-shadow: inset 0 2px 0 var(--led); }
   .day.today h3 { color: var(--led-text); }
+  .day.today h3::after { content: ''; display: inline-block; width: 10px; height: 10px; margin-left: .3rem; vertical-align: -2px;
+    background: var(--led-on); }
   .day.weekend { background: var(--weekend-bg); }
   .day.hl { background: rgba(224, 69, 127, .2); box-shadow: inset 0 0 0 2px var(--led); } /* hovered row's due day */
   .day p { margin: 0 0 .3rem; border-left: 3px solid var(--c); padding-left: .3rem; font-size: .85em; line-height: 1.2; }
@@ -177,7 +199,25 @@
   .day .more { font: .55rem var(--display); letter-spacing: .1em; color: var(--led-text); }
 
   /* Top bar: the calendar, its arrows, then the Next test and Next lab readouts */
-  #top { display: flex; gap: .8rem; align-items: flex-start; padding-top: 1rem; } /* Next blocks keep their own height */
+  #top { display: flex; gap: .8rem; align-items: flex-start; } /* Next blocks keep their own height */
+  /* Nameplate strip at the top of the sticky bar: badge, vent grille, a status LED per website, last sync */
+  #plate { display: flex; align-items: center; gap: 1rem; padding: .7rem 0 .6rem; }
+  #brand { display: flex; align-items: center; gap: .6rem; }
+  #brand svg { width: 30px; height: 30px; color: var(--label); }
+  #brand b { font: 1.05rem var(--display); letter-spacing: .38em; color: var(--label);
+    text-shadow: 0 1px 0 var(--chassis-lo), 0 -1px 0 var(--chassis-hi); } /* stamped into the metal */
+  #brand small { display: block; font: 600 .6rem 'Chakra Petch', sans-serif; letter-spacing: .32em; text-transform: uppercase; color: var(--label); }
+  .vent { flex: 1; min-width: 3rem; height: 14px;
+    background: repeating-linear-gradient(90deg, var(--recess-lo) 0 2px, var(--chassis-hi) 2px 3px, transparent 3px 6px);
+    box-shadow: inset 0 1px 0 var(--chassis-lo), 0 1px 0 var(--chassis-hi); }
+  #links { display: flex; gap: 1rem; font: 600 .66rem 'Chakra Petch', sans-serif; letter-spacing: .14em; text-transform: uppercase; color: var(--label); }
+  #links span::after { content: ''; display: inline-block; width: 10px; height: 10px; margin-left: .3rem; vertical-align: -1px; background: var(--led-off); }
+  #links .ok::after { background: var(--led-on-ok); }
+  #links .login::after { background: var(--led-on-amber); }
+  #links .error::after { background: var(--led-on); }
+  #synced, #host { font: .52rem var(--display); letter-spacing: .14em; text-transform: uppercase; color: var(--label); padding: .35rem .55rem;
+    background: var(--recess); box-shadow: inset 1px 1px 0 var(--recess-lo), inset -1px -1px 0 var(--recess-hi); white-space: nowrap; }
+  #foot { display: flex; align-items: center; gap: 1rem; margin-top: 1.4rem; }
   #next-test, #next-lab { flex: 1; min-width: 0; } /* two equal boxes fill the rest of the top bar */
   /* Next boxes: as tall as the calendar. A recessed title plate with a lit LED, then the readout. Text scales with the
      box width (cqw), capped. Course and title on the left; date, time and details right-aligned opposite them. */
@@ -188,7 +228,12 @@
     font: .5rem var(--display); letter-spacing: .08em; text-transform: uppercase; color: var(--label); white-space: nowrap;
     background: linear-gradient(180deg, #3D3D3D, var(--recess) 60%, #2A2A2A); box-shadow: inset 0 -1px 0 var(--recess-lo); }
   .next h3::after { content: ''; position: absolute; right: .55rem; top: 50%; width: 10px; height: 10px; margin-top: -5px;
-    background: radial-gradient(circle, #FFE3EE 0 1px, var(--led) 2px 3px, var(--led-glow) 3.5px, transparent 5px); }
+    background: var(--led-on); }
+  @container (max-width: 130px) { .next h3::after { content: none; } .next h3 { padding-right: .7rem; } } /* no room for the LED */
+  /* Countdown meter: LED segments for the share of the next 14 days still left before the due time */
+  .next .meter { flex: none; margin-top: auto; height: 9px;
+    background: repeating-linear-gradient(90deg, var(--led) 0 5px, transparent 5px 7px) 0 0 / var(--fill, 0%) 100% no-repeat,
+      repeating-linear-gradient(90deg, #24434F 0 5px, transparent 5px 7px); }
   .next .body { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .2rem .8rem; }
   .next .who { flex: 1 1 8rem; min-width: 0; }
   .next .what { margin-left: auto; text-align: right; min-width: 0; }
@@ -204,6 +249,12 @@
     border-left: 3px solid var(--led); box-shadow: 0 0 0 1px var(--chassis-hi); pointer-events: none; }
 </style>
 <div id="cal-wrap">
+  <div id="plate">
+    <div id="brand"><span id="mark"></span><div><b>MACTRACK</b><small>Coursework tracker</small></div></div>
+    <div class="vent"></div>
+    <div id="links" role="group" aria-label="Sync status"></div>
+    <div id="synced"></div>
+  </div>
   <div id="top">
     <div id="calendar"></div>
     <nav id="cal-nav">
@@ -220,16 +271,16 @@
   <p id="summary" class="info"></p>
   <div id="pair">
   <div id="tests-part">
-    <h2 class="list-h">Tests</h2>
+    <h2 class="list-h">Tests<span class="count"></span></h2>
     <table id="tests" class="items"><colgroup></colgroup><thead></thead><tbody></tbody></table>
   </div>
   <div id="labs-part">
-    <h2 class="list-h">Labs</h2>
+    <h2 class="list-h">Labs<span class="count"></span></h2>
     <table id="labs" class="items"><colgroup></colgroup><thead></thead><tbody></tbody></table>
   </div>
   </div>
   <div id="work-part">
-    <h2 class="list-h">Coursework</h2>
+    <h2 class="list-h">Coursework<span class="count"></span></h2>
     <table id="items" class="items"><colgroup></colgroup><thead></thead><tbody id="list"></tbody></table>
   </div>
   <table id="grades">
@@ -260,7 +311,11 @@
   <thead><tr><th>Website</th><th>Status</th><th>Last synced</th></tr></thead>
   <tbody></tbody>
 </table>
-<button id="edit"></button>
+<footer id="foot">
+  <button id="edit"></button>
+  <div class="vent"></div>
+  <span id="host"></span>
+</footer>
 <div id="tip" role="tooltip" hidden></div>
 <script>
 'use strict';
@@ -290,21 +345,31 @@ const round2 = (v) => (v == null ? '' : Math.round(v * 100) / 100); // display o
 const editing = () => localStorage.getItem('editMode') === '1'; // view mode by default; browser only
 const hiddenCourses = () => { try { return JSON.parse(localStorage.getItem('hiddenCourses')) || []; } catch { return []; } }; // browser only
 const setHidden = (list) => { localStorage.setItem('hiddenCourses', JSON.stringify(list)); render(); };
-const icon = (d) => { // stroked 24px SVG from one path; built with DOM calls, never parsed from a string
+// Y2K icons: angular 24px SVGs, a stroked path (mitred, square ends) plus an optional filled one.
+// Built with DOM calls, never parsed from a string.
+const icon = (stroke, fill = '') => {
   const ns = 'http://www.w3.org/2000/svg';
   const svg = document.createElementNS(ns, 'svg');
-  const path = document.createElementNS(ns, 'path');
   for (const [k, v] of Object.entries({ viewBox: '0 0 24 24', width: 18, height: 18, fill: 'none', stroke: 'currentColor',
-    'stroke-width': 2, 'aria-hidden': 'true' })) svg.setAttribute(k, v);
-  path.setAttribute('d', d);
-  svg.append(path);
+    'stroke-width': 2, 'stroke-linejoin': 'miter', 'stroke-linecap': 'square', 'aria-hidden': 'true' })) svg.setAttribute(k, v);
+  for (const [d, filled] of [[stroke, false], [fill, true]]) {
+    if (!d) continue;
+    const path = document.createElementNS(ns, 'path');
+    path.setAttribute('d', d);
+    if (filled) { path.setAttribute('fill', 'currentColor'); path.setAttribute('stroke', 'none'); }
+    svg.append(path);
+  }
   return svg;
 };
-const EYE = 'M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12zM15 12a3 3 0 1 1-6 0a3 3 0 1 1 6 0';
-const PENCIL = 'M16.5 3.5l4 4L8 20H4v-4L16.5 3.5z';
-const PAGE = 'M14 2H5v20h14V7l-5-5zM14 2v5h5M8 13h8M8 17h8';
-const TRASH = 'M3 6h18M8 6V4h8v2M6 6l1 15h10l1-15M10 11v6M14 11v6';
-const EYE_SHUT = 'M2 10c3 4 6.5 6 10 6s7-2 10-6M5 13l-2 3M12 16v3M19 13l2 3';
+const EYE = ['M2 12l5-6h10l5 6-5 6H7z', 'M12 8.5l3.5 3.5-3.5 3.5-3.5-3.5z']; // hex lens, diamond pupil
+const EYE_SHUT = ['M2 10l5 5h10l5-5M6 16l-2 3M12 17v3M18 16l2 3'];
+const PENCIL = ['M4 20v-5L15 4l5 5L9 20zM13 6l5 5', 'M4 20v-5l5 5z']; // stylus with a filled tip
+const MONITOR = ['M3 4h16l2 2v11H5l-2-2zM9 21h6M12 17v4M7 8h10M7 11h10M7 14h6']; // screen with scanlines
+const TRASH = ['M3 6h18M9 6V3h6v3M5 6l1.5 13 2 2h7l2-2L19 6M10 10v7M14 10v7'];
+const UP = ['', 'M12 3l8 8h-5v8l-2 2h-2l-2-2v-8H4z'];
+const DOWN = ['', 'M12 21l8-8h-5V5l-2-2h-2L9 5v8H4z'];
+const RETICLE = ['M8 3h8l5 5v8l-5 5H8l-5-5V8zM12 1v4M12 19v4M1 12h4M19 12h4', 'M10 10h4v4h-4z']; // back to today: target lock
+const BADGE = ['M7 2h10l5 5v10l-5 5H7l-5-5V7z', 'M7 8h10v2H7zM7 11h7v2H7zM7 14h10v2H7z']; // octagon badge, three bars
 let data = { items: [], courses: {} };
 let status = {};
 let calOffset = 0; // calendar start, in days from today; not saved
@@ -333,11 +398,10 @@ const dueText = (iso, now = new Date()) => { // ["dd Mon", "hh:mm"], with the ye
   const year = d.getFullYear() === now.getFullYear() ? '' : ` ${d.getFullYear()}`;
   return [`${pad(d.getDate())} ${MONTHS[d.getMonth()]}${year}`, `${pad(d.getHours())}:${pad(d.getMinutes())}`];
 };
-const DOT = 'M12 8a4 4 0 1 1 0 8a4 4 0 1 1 0-8z';
+const DIAMOND = ['', 'M12 4l8 8-8 8-8-8z'];
 const dateTime = (iso) => { // "dd Mon • hh:mm" as a 3-part grid; alignDots() lines the dots up per table
   const [date, time] = dueText(iso);
-  const dot = icon(DOT);
-  dot.setAttribute('fill', 'currentColor');
+  const dot = icon(...DIAMOND);
   return $('div', { className: 'due' }, $('span', { textContent: date }), dot, $('span', { textContent: time }));
 };
 // Line the dots up: size every date slot in a table to its widest date, measured with the slot unset
@@ -445,7 +509,7 @@ function row(item) {
   };
   const orig = Object.fromEntries(Object.entries(inputs).map(([k, i]) => [k, raw(i)]));
   for (const [k, v] of Object.entries(pending.get(item.id)?.raw ?? {})) inputs[k][k === 'done' ? 'checked' : 'value'] = v;
-  const trash = tip($('button', { className: 'icon', onclick: () => remove(item) }, icon(TRASH)), `Delete ${item.title ?? ''}`);
+  const trash = tip($('button', { className: 'icon', onclick: () => remove(item) }, icon(...TRASH)), `Delete ${item.title ?? ''}`);
   trash.setAttribute('aria-label', trash.dataset.tip);
   const tr = tip($('tr', {},
     $('td', {}, inputs.done), $('td', {}, inputs.kind), $('td', { className: 'course', textContent: courseOf(item) }),
@@ -510,7 +574,13 @@ function render() {
   document.getElementById('save').hidden = !editing();
   saveState();
   // Mode switch: pencil + Edit in view mode, page + View in edit mode
-  document.getElementById('edit').replaceChildren(icon(editing() ? PAGE : PENCIL), editing() ? 'View' : 'Edit');
+  document.getElementById('edit').replaceChildren(icon(...(editing() ? MONITOR : PENCIL)), editing() ? 'View' : 'Edit');
+  // Nameplate: one LED per website (green ok, amber needs sign-in, maroon error), and the latest sync time
+  document.getElementById('links').replaceChildren(...Object.entries(status).map(([src, s]) => tip($('span', {
+    className: { ok: 'ok', 'login needed': 'login', error: 'error' }[s.status] ?? '',
+    textContent: src[0].toUpperCase() + src.slice(1) }), `${src[0].toUpperCase() + src.slice(1)}: ${s.status}`)));
+  const lastSync = Object.values(status).map((s) => s.synced_at).filter(Boolean).sort().pop();
+  document.getElementById('synced').textContent = lastSync ? `Synced ${dueText(lastSync).join(' ')}` : 'Not synced yet';
   // AC30: sync status per source in the bottom table; for "login needed" the word "login" is the sign-in link.
   document.querySelector('#sources tbody').replaceChildren(...Object.entries(status).map(([src, s]) => $('tr', {},
     $('td', { textContent: src[0].toUpperCase() + src.slice(1) }),
@@ -543,7 +613,7 @@ function render() {
     tip(eye, off ? `Show ${c}` : `Hide ${c}`);
     eye.setAttribute('aria-label', eye.dataset.tip);
     eye.style.setProperty('--c', colorOf(c));
-    eye.append(icon(off ? EYE_SHUT : EYE));
+    eye.append(icon(...(off ? EYE_SHUT : EYE)));
     return $('span', { className: off ? 'off' : '' }, b, eye);
   }));
 
@@ -582,6 +652,11 @@ function render() {
         ...[left(i) && (overdue(i) ? left(i) : `in ${left(i)}`), i.weight != null && `worth ${round2(i.weight)}%`, `Room ${room ?? 'TBD'}`]
           .filter(Boolean).map((t) => $('p', { className: 'muted', textContent: t }))))
       : $('p', { className: 'muted', textContent: empty }));
+    if (i && i.due && !i.done) { // share of the next 14 days still left before the due time
+      const meter = tip($('div', { className: 'meter' }), 'Time left, out of 14 days');
+      meter.style.setProperty('--fill', `${Math.max(0, Math.min(1, (dueMs(i) - Date.now()) / (14 * 864e5))) * 100}%`);
+      el.append(meter);
+    }
   };
   const info = (i) => data.courses[courseOf(i)]?.info;
   const nextTest = ahead.find((i) => TESTS.includes(i.kind));
@@ -637,6 +712,7 @@ function render() {
     table.querySelector('thead').replaceChildren($('tr', {}, done(), ...['Type', 'Course', 'Title', 'Due', 'Time left', 'Weight', 'Mark',
       ...(editing() ? [''] : [])].filter((h) => typed || h !== 'Type')
       .map((h) => $('th', { textContent: id === 'tests' && h === 'Due' ? 'Time' : h })))); // a test is held, not handed in
+    table.parentElement.querySelector('.count').textContent = String(items.length).padStart(2, '0');
     table.tBodies[0].replaceChildren(...items.map(toRow).map((tr) => { if (!typed) tr.children[1].remove(); return tr; }));
   }
   // An empty part is hidden; with nothing at all, the coursework part says so
@@ -699,9 +775,11 @@ document.getElementById('save').addEventListener('click', saveAll);
 window.addEventListener('beforeunload', (e) => { if (pending.size) e.preventDefault(); }); // reload or close with unsaved edits
 document.querySelector('#add [name=kind]').append(...KINDS.map((k) => $('option', { value: k, textContent: k })));
 document.getElementById('add').addEventListener('submit', add);
-document.getElementById('cal-back').append(icon('M12 19V5M5 12l7-7 7 7'));
-document.getElementById('cal-today').append(icon('M3 12a9 9 0 1 0 3-6.7M3 3v6h6'));
-document.getElementById('cal-fwd').append(icon('M12 5v14M5 12l7 7 7-7'));
+document.getElementById('cal-back').append(icon(...UP));
+document.getElementById('cal-today').append(icon(...RETICLE));
+document.getElementById('cal-fwd').append(icon(...DOWN));
+document.getElementById('mark').append(icon(...BADGE));
+document.getElementById('host').textContent = `Link ${location.host}`; // the local server this page talks to
 document.getElementById('cal-back').addEventListener('click', () => { calOffset -= STEP; render(); });
 document.getElementById('cal-fwd').addEventListener('click', () => { calOffset += STEP; render(); });
 document.getElementById('cal-today').addEventListener('click', () => { calOffset = 0; render(); });
