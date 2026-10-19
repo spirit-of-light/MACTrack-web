@@ -25,6 +25,8 @@
     --bracket: #4F7887; /* corner marks on screens */
     --bezel: #262626; /* dark frame every screen sits in */
     --glare: linear-gradient(160deg, rgba(255, 255, 255, .05), rgba(255, 255, 255, 0) 35%); /* light across the glass */
+    --vignette: radial-gradient(ellipse at center, rgba(0, 0, 0, 0) 55%, rgba(0, 0, 0, .3) 100%); /* tube edges fall off */
+    --bloom: 0 0 6px rgba(214, 227, 230, .2); /* phosphor glow around screen text */
     --scanlines: repeating-linear-gradient(0deg, rgba(255, 255, 255, .025) 0 1px, transparent 1px 3px); /* CRT lines, screens only */
     /* LEDs: radial-gradient dots, so no rounded corners are needed */
     /* An LED is three layers: a white glint, a domed lens filling the socket (dim tinted glass when off, a hot core when on), and a metal
@@ -44,6 +46,9 @@
     --glow-amber: drop-shadow(0 0 3px rgba(242, 177, 52, .6));
   }
   html { overscroll-behavior: none; scrollbar-color: var(--chassis-hi) var(--recess); } /* no rubber-band bounce (macOS) */
+  /* Console frame: a bevelled edge around the whole window */
+  html::after { content: ''; position: fixed; inset: 0; z-index: 20; pointer-events: none;
+    box-shadow: inset 0 0 0 1px var(--chassis-lo), inset 0 0 0 2px var(--chassis-hi), inset 0 0 0 5px var(--chassis), inset 0 0 0 6px var(--chassis-lo); }
   /* Brushed gunmetal: fine horizontal grain over the chassis grey */
   body { font: 14px/1.35 'Chakra Petch', sans-serif; margin: 0 1.5rem 1.5rem; /* no top margin: the sticky top bar carries its own top padding */
     color: var(--label); background: var(--chassis); }
@@ -98,9 +103,10 @@
       linear-gradient(var(--bracket), var(--bracket)) left 2px bottom 2px / 10px 1px no-repeat,
       linear-gradient(var(--bracket), var(--bracket)) left 2px bottom 2px / 1px 10px no-repeat,
       var(--glare),
+      var(--vignette),
       var(--scanlines),
       var(--screen);
-    color: var(--screen-text); border: 4px solid var(--bezel);
+    color: var(--screen-text); border: 4px solid var(--bezel); text-shadow: var(--bloom);
     box-shadow: inset 0 0 0 1px var(--recess-lo), inset 2px 2px 0 #06141A, 0 1px 0 var(--chassis-hi); }
 
   /* Section labels: tiny wide-tracked caps between rows of hollow blocks */
@@ -120,11 +126,17 @@
   #sources, #grades { margin-top: 2rem; width: auto; }
   #sources { color: var(--screen-muted); }
   #grades td:first-child { color: var(--c); font-weight: 600; }
+  /* Sync status on the screen is coloured text, not a lamp (lamps live on chrome) */
+  #sources td.status { font-weight: 600; text-transform: uppercase; letter-spacing: .08em; }
+  #sources td.ok { color: var(--led-ok); }
+  #sources td.login, #sources td.login a { color: var(--amber); }
+  #sources td.error { color: var(--led-text); }
   .gauge { display: inline-block; width: 6rem; height: 9px; margin-right: .5rem; vertical-align: -1px;
     background: repeating-linear-gradient(90deg, var(--c) 0 4px, transparent 4px 6px) 0 0 / var(--fill, 0%) 100% no-repeat,
       repeating-linear-gradient(90deg, #24434F 0 4px, transparent 4px 6px); }
   .items tbody td.empty { padding: 1rem .3rem; text-align: left; color: var(--screen-muted); } /* beats the ✓ column centring */
   .items td.empty button { margin-left: .6rem; }
+  .cursor { display: inline-block; width: .55em; height: 1em; margin-left: .25em; vertical-align: -2px; background: var(--screen-text); } /* terminal block */
 
   /* Item list with the filter sidebar on its right */
   #layout { display: grid; grid-template-columns: minmax(0, 1fr) 10rem; gap: 1.5rem; align-items: start; --side: 10rem;
@@ -137,6 +149,9 @@
     background: var(--chassis);
     box-shadow: 0 1px 0 var(--chassis-lo), 0 2px 0 var(--chassis-hi); }
   .items thead th { position: sticky; top: var(--head-top, 0); z-index: 1; } /* column titles stay below the calendar */
+  /* Engraved label: light letters with a dark edge above, pressed into the chassis */
+  .engrave { margin-bottom: -.6rem; font: .55rem var(--display); letter-spacing: .32em; text-transform: uppercase; color: var(--label);
+    text-shadow: 0 -1px 0 var(--chassis-lo), 0 1px 0 #7A7A7A; }
   #filters { position: sticky; top: var(--head-top, 0); max-height: calc(100vh - var(--head-top, 0px)); overflow-y: auto; box-sizing: border-box;
     padding-top: 1rem; display: flex; flex-direction: column; gap: 1rem; }
   @media (max-width: 900px) { #layout { grid-template-columns: 1fr; } #filters { position: static; order: -1; max-height: none; } }
@@ -214,6 +229,9 @@
   /* Calendar: the main display. Fixed square days, 7 per row; a full day hides its last items behind "+N more" */
   #calendar { flex: none; display: grid; grid-template-columns: 1.5rem repeat(7, var(--day)); grid-auto-rows: var(--day);
     padding: 2px; }
+  /* Now line: a trace across today's square at the current time of day (top = midnight, bottom = next midnight) */
+  .day.today { position: relative; }
+  .day .now { position: absolute; left: 0; right: 0; height: 1px; background: var(--led); box-shadow: 0 0 4px var(--led-glow); pointer-events: none; }
   .day { border-right: 1px solid var(--screen-line); border-bottom: 1px solid var(--screen-line); padding: .35rem .45rem;
     box-sizing: border-box; overflow: hidden; overflow-wrap: anywhere; }
   .day:nth-child(8n) { border-right: 0; } /* 8 cells a row: week strip + 7 days */
@@ -347,6 +365,7 @@
     </div>
     <button>Add</button>
   </form>
+  <div class="engrave" aria-hidden="true">Courses</div>
   <div id="courses" class="chips" role="group" aria-label="Course"></div>
   <div id="statuses" class="chips" role="group" aria-label="Status"></div>
 </aside>
@@ -618,6 +637,7 @@ function calendar(items, colorOf) {
       }));
     cell.dataset.day = day;
     cell.dataset.label = today ? `${label} (today)` : label;
+    if (today) cell.append($('i', { className: 'now' }));
     if (k % 7) return [cell];
     // each row of 7 days opens with its week strip: the ISO week(s) it covers
     const last = new Date(from);
@@ -643,7 +663,7 @@ function render() {
   // AC30: sync status per source in the bottom table; for "login needed" the word "login" is the sign-in link.
   document.querySelector('#sources tbody').replaceChildren(...Object.entries(status).map(([src, s]) => $('tr', {},
     $('td', { textContent: src[0].toUpperCase() + src.slice(1) }),
-    $('td', {}, $('span', { className: `lamp ${{ ok: 'ok', 'login needed': 'login', error: 'error' }[s.status] ?? ''}` }), ...(s.status === 'login needed'
+    $('td', { className: `status ${{ ok: 'ok', 'login needed': 'login', error: 'error' }[s.status] ?? ''}` }, ...(s.status === 'login needed'
       ? [$('a', { href: LOGIN[src], target: '_blank', rel: 'noopener', textContent: 'login' }), ' needed']
       : [s.status])),
     $('td', {}, s.synced_at ? dateTime(s.synced_at) : ''))));
@@ -788,7 +808,7 @@ function render() {
   document.getElementById('work-part').hidden = !parts[2][1].length && !!shown.length;
   if (!shown.length) {
     const clear = $('button', { textContent: 'Clear filters', onclick: () => { course = ''; hideDone = false; render(); } });
-    document.getElementById('list').append($('tr', {}, $('td', { className: 'empty', colSpan: cols.length }, 'No items match these filters.', clear)));
+    document.getElementById('list').append($('tr', {}, $('td', { className: 'empty', colSpan: cols.length }, 'No items match these filters.', $('span', { className: 'cursor', ariaHidden: 'true' }), clear)));
   }
   // Course grades under the list: every course shown in the course buttons (AC29)
   document.querySelector('#grades tbody').replaceChildren(...courses.filter((c) => c !== '(no course)').map((c) => {
@@ -816,7 +836,12 @@ let tickTimer;
 function tick() {
   clearTimeout(tickTimer);
   const now = Date.now();
-  let wait = Infinity;
+  const line = document.querySelector('.day.today .now');
+  if (line) { // share of today gone by
+    const midnight = new Date(now).setHours(0, 0, 0, 0);
+    line.style.top = `${((now - midnight) / 864e5) * 100}%`;
+  }
+  let wait = line ? 6e5 : Infinity; // the now line moves about 1px every 10 minutes
   for (const [tr, i] of timed) {
     tr.querySelector('.left').textContent = left(i);
     tr.classList.toggle('overdue', overdue(i));
