@@ -23,7 +23,6 @@
     --weekend-bg: var(--screen-weekend);
     --display: Michroma, 'Chakra Petch', sans-serif;
     --bracket: #4F7887; /* corner marks on screens */
-    --bezel: #262626; /* dark frame every screen sits in */
     --glare: linear-gradient(160deg, rgba(255, 255, 255, .05), rgba(255, 255, 255, 0) 35%); /* light across the glass */
     --vignette: radial-gradient(ellipse at center, rgba(0, 0, 0, 0) 55%, rgba(0, 0, 0, .3) 100%); /* tube edges fall off */
     --bloom: 0 0 6px rgba(214, 227, 230, .2); /* phosphor glow around screen text */
@@ -57,8 +56,21 @@
   :focus-visible { outline: 2px solid var(--led); outline-offset: 2px; }
 
   /* Chamfered corners: top-left and bottom-right cut, like the reference consoles */
-  #calendar, .next, .items, #grades, #sources {
+  /* Casing around every screen: a raised gunmetal frame with bevelled edges, a screw in each uncut corner, grip ticks
+     along the bottom, and chamfered top-left / bottom-right corners. The screen sits inside behind a black lip. */
+  .bezel { --cut: 12px; position: relative; padding: 7px; box-sizing: border-box;
+    background:
+      linear-gradient(45deg, transparent 42%, #1E1E1E 42% 58%, transparent 58%) right 2px top 2px / 5px 5px no-repeat, /* screw slots */
+      linear-gradient(45deg, transparent 42%, #1E1E1E 42% 58%, transparent 58%) left 2px bottom 2px / 5px 5px no-repeat,
+      radial-gradient(circle closest-side, #B5B5B5 0 30%, #6E6E6E 55%, #2A2A2A 80%, transparent 85%) right 1px top 1px / 7px 7px no-repeat,
+      radial-gradient(circle closest-side, #B5B5B5 0 30%, #6E6E6E 55%, #2A2A2A 80%, transparent 85%) left 1px bottom 1px / 7px 7px no-repeat,
+      repeating-linear-gradient(90deg, #262626 0 2px, transparent 2px 5px) left 22px bottom 2px / 42px 3px no-repeat, /* grip ticks */
+      linear-gradient(160deg, #8E8E8E, #5E5E5E 35%, #4A4A4A 65%, #353535);
+    box-shadow: inset 1px 1px 0 #B8B8B8, inset -1px -1px 0 #161616, inset 2px 2px 0 rgba(255, 255, 255, .12), inset -2px -2px 0 rgba(0, 0, 0, .35);
     clip-path: polygon(var(--cut) 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%, 0 var(--cut)); }
+  .bezel.fit { width: fit-content; }
+  .bezel.grow { flex: 1; min-width: 0; }
+  #top > .bezel:first-child { flex: none; }
 
   /* Buttons: glossy maroon plates with a bevel; small wide-tracked caps */
   button { font: .62rem var(--display); letter-spacing: .14em; text-transform: uppercase; cursor: pointer;
@@ -106,7 +118,7 @@
       var(--vignette),
       var(--scanlines),
       var(--screen);
-    color: var(--screen-text); border: 4px solid var(--bezel); text-shadow: var(--bloom);
+    color: var(--screen-text); border: 2px solid #050505; text-shadow: var(--bloom); /* black lip where the glass meets the casing */
     box-shadow: inset 0 0 0 1px var(--recess-lo), inset 2px 2px 0 #06141A, 0 1px 0 var(--chassis-hi); }
 
   /* Section labels: tiny wide-tracked caps between rows of hollow blocks */
@@ -123,7 +135,8 @@
     background: #1E1E1E; box-shadow: inset 1px 1px 0 var(--recess-lo), inset -1px -1px 0 var(--recess-hi); }
   .list-h .lamp { margin-right: 0; }
 
-  #sources, #grades { margin-top: 2rem; width: auto; }
+  #sources, #grades { width: auto; }
+  .bezel.fit { margin-top: 2rem; }
   #sources { color: var(--screen-muted); }
   #grades td:first-child { color: var(--c); font-weight: 600; }
   /* Sync status on the screen is coloured text, not a lamp (lamps live on chrome) */
@@ -279,10 +292,10 @@
     background: var(--recess); box-shadow: inset 1px 1px 0 var(--recess-lo), inset -1px -1px 0 var(--recess-hi); white-space: nowrap; }
   #tally span + span { margin-left: .6rem; padding-left: .6rem; box-shadow: inset 1px 0 0 var(--recess-hi); }
   #foot { display: flex; align-items: center; gap: 1rem; margin-top: 1.4rem; }
-  #next-test, #next-lab { flex: 1; min-width: 0; } /* two equal boxes fill the rest of the top bar */
+  /* the two Next casings (.bezel.grow) share the rest of the top bar equally */
   /* Next boxes: as tall as the calendar. A recessed title plate with a lit LED, then the readout. Text scales with the
      box width (cqw), capped. Course and title on the left; date, time and details right-aligned opposite them. */
-  .next { height: calc(2 * var(--day) + 12px); /* the calendar's height: two rows, padding and bezel */ box-sizing: border-box; overflow: hidden; padding: 0 .7rem .6rem;
+  .next { height: calc(2 * var(--day) + 8px); /* the calendar's height: two rows, its 2px padding and 2px lip */ box-sizing: border-box; overflow: hidden; padding: 0 .7rem .6rem;
     display: flex; flex-direction: column; container-type: inline-size; border-left: 4px solid var(--c, var(--screen-line)); }
   .next p { margin: 0 0 .2rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .next h3 { position: relative; margin: 0 -.7rem .6rem; padding: .45rem 1.8rem .45rem .7rem;
@@ -318,14 +331,14 @@
     <div id="synced"></div>
   </div>
   <div id="top">
-    <div id="calendar"></div>
+    <div class="bezel"><div id="calendar"></div></div>
     <nav id="cal-nav">
       <button id="cal-back" aria-label="Previous week" data-tip="Previous week" data-tip-delay="1000"></button>
       <button id="cal-today" aria-label="Back to today" data-tip="Back to today" data-tip-delay="1000"></button>
       <button id="cal-fwd" aria-label="Next week" data-tip="Next week" data-tip-delay="1000"></button>
     </nav>
-    <div id="next-test" class="next" role="region" aria-label="Next test"></div>
-    <div id="next-lab" class="next" role="region" aria-label="Next lab"></div>
+    <div class="bezel grow"><div id="next-test" class="next" role="region" aria-label="Next test"></div></div>
+    <div class="bezel grow"><div id="next-lab" class="next" role="region" aria-label="Next lab"></div></div>
   </div>
 </div>
 <div id="layout">
@@ -334,21 +347,21 @@
   <div id="pair">
   <div id="tests-part">
     <h2 class="list-h"><span class="tab">Tests<span class="count"></span><span class="lamp"></span></span></h2>
-    <table id="tests" class="items"><colgroup></colgroup><thead></thead><tbody></tbody></table>
+    <div class="bezel"><table id="tests" class="items"><colgroup></colgroup><thead></thead><tbody></tbody></table></div>
   </div>
   <div id="labs-part">
     <h2 class="list-h"><span class="tab">Labs<span class="count"></span><span class="lamp"></span></span></h2>
-    <table id="labs" class="items"><colgroup></colgroup><thead></thead><tbody></tbody></table>
+    <div class="bezel"><table id="labs" class="items"><colgroup></colgroup><thead></thead><tbody></tbody></table></div>
   </div>
   </div>
   <div id="work-part">
     <h2 class="list-h"><span class="tab">Coursework<span class="count"></span><span class="lamp"></span></span></h2>
-    <table id="items" class="items"><colgroup></colgroup><thead></thead><tbody id="list"></tbody></table>
+    <div class="bezel"><table id="items" class="items"><colgroup></colgroup><thead></thead><tbody id="list"></tbody></table></div>
   </div>
-  <table id="grades">
+  <div class="bezel fit"><table id="grades">
     <thead><tr><th>Course</th><th>Grade</th><th>Graded</th></tr></thead>
     <tbody></tbody>
-  </table>
+  </table></div>
 </main>
 <aside id="filters">
   <button id="save">Save</button>
@@ -370,10 +383,10 @@
   <div id="statuses" class="chips" role="group" aria-label="Status"></div>
 </aside>
 </div>
-<table id="sources">
+<div class="bezel fit"><table id="sources">
   <thead><tr><th>Website</th><th>Status</th><th>Last synced</th></tr></thead>
   <tbody></tbody>
-</table>
+</table></div>
 <footer id="foot">
   <button id="edit"></button>
   <div class="vent"></div>
@@ -794,10 +807,10 @@ function render() {
     table.querySelector('thead').replaceChildren($('tr', {}, done(), ...['Type', 'Course', 'Title', 'Due', 'Time left', 'Weight', 'Mark',
       ...(editing() ? [''] : [])].filter((h) => typed || h !== 'Type')
       .map((h) => $('th', { textContent: id === 'tests' && h === 'Due' ? 'Time' : h })))); // a test is held, not handed in
-    table.parentElement.querySelector('.count').textContent = String(items.length).padStart(2, '0');
+    table.closest('[id$="-part"]').querySelector('.count').textContent = String(items.length).padStart(2, '0');
     const late = items.filter(overdue).length;
     const soon = items.filter(upcoming).length;
-    const lamp = table.parentElement.querySelector('.lamp'); // maroon: something overdue; amber: due soon; green: clear
+    const lamp = table.closest('[id$="-part"]').querySelector('.lamp'); // maroon: something overdue; amber: due soon; green: clear
     lamp.className = `lamp ${late ? 'error' : soon ? 'login' : 'ok'}`;
     tip(lamp, late ? `${late} overdue` : soon ? `${soon} due within ${UPCOMING_DAYS} days` : `Nothing due within ${UPCOMING_DAYS} days`);
     table.tBodies[0].replaceChildren(...items.map(toRow).map((tr) => { if (!typed) tr.children[1].remove(); return tr; }));
