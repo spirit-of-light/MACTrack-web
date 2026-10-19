@@ -23,16 +23,17 @@
     --weekend-bg: var(--screen-weekend);
     --display: Michroma, 'Chakra Petch', sans-serif;
     --bracket: #4F7887; /* corner marks on screens */
+    --scanlines: repeating-linear-gradient(0deg, rgba(255, 255, 255, .025) 0 1px, transparent 1px 3px); /* CRT lines, screens only */
     /* LEDs: radial-gradient dots, so no rounded corners are needed */
-    --led-off: radial-gradient(circle, #5A5A5A 0 2.5px, #2A2A2A 3px 4px, transparent 4.5px);
-    --led-on: radial-gradient(circle, #FFE3EE 0 1px, var(--led) 2px 3px, var(--led-glow) 3.5px, transparent 5px);
-    --led-on-ok: radial-gradient(circle, #E6FFEE 0 1px, var(--led-ok) 2px 3px, rgba(87, 227, 137, .5) 3.5px, transparent 5px);
-    --led-on-amber: radial-gradient(circle, #FFF4D6 0 1px, var(--amber) 2px 3px, rgba(242, 177, 52, .5) 3.5px, transparent 5px);
+    --led-off: radial-gradient(circle closest-side, #5A5A5A 0 50%, #2A2A2A 60% 80%, transparent 90%);
+    --led-on: radial-gradient(circle closest-side, #FFE3EE 0 20%, var(--led) 40% 60%, var(--led-glow) 70%, transparent 100%);
+    --led-on-ok: radial-gradient(circle closest-side, #E6FFEE 0 20%, var(--led-ok) 40% 60%, rgba(87, 227, 137, .5) 70%, transparent 100%);
+    --led-on-amber: radial-gradient(circle closest-side, #FFF4D6 0 20%, var(--amber) 40% 60%, rgba(242, 177, 52, .5) 70%, transparent 100%);
   }
   html { overscroll-behavior: none; scrollbar-color: var(--chassis-hi) var(--recess); } /* no rubber-band bounce (macOS) */
   /* Brushed gunmetal: fine horizontal grain over the chassis grey */
   body { font: 14px/1.35 'Chakra Petch', sans-serif; margin: 0 1.5rem 1.5rem; /* no top margin: the sticky top bar carries its own top padding */
-    color: var(--label); background: repeating-linear-gradient(0deg, #666 0 2px, #626262 2px 3px) var(--chassis); }
+    color: var(--label); background: var(--chassis); }
   ::selection { background: var(--primary); color: var(--on-primary); }
   a { color: var(--led-text); }
   :focus-visible { outline: 2px solid var(--led); outline-offset: 2px; }
@@ -80,7 +81,7 @@
       linear-gradient(var(--bracket), var(--bracket)) right 2px top 2px / 1px 10px no-repeat,
       linear-gradient(var(--bracket), var(--bracket)) left 2px bottom 2px / 10px 1px no-repeat,
       linear-gradient(var(--bracket), var(--bracket)) left 2px bottom 2px / 1px 10px no-repeat,
-      repeating-linear-gradient(0deg, rgba(255, 255, 255, .025) 0 1px, transparent 1px 3px), /* CRT scanlines */
+      var(--scanlines),
       var(--screen);
     color: var(--screen-text);
     box-shadow: inset 0 0 0 1px var(--recess-lo), inset 2px 2px 0 #06141A, 0 1px 0 var(--chassis-hi); }
@@ -101,11 +102,11 @@
   .items td.empty button { margin-left: .6rem; }
 
   /* Item list with the filter sidebar on its right */
-  #layout { display: grid; grid-template-columns: minmax(0, 1fr) 9rem; gap: 1.5rem; align-items: start; }
+  #layout { display: grid; grid-template-columns: minmax(0, 1fr) 10rem; gap: 1.5rem; align-items: start; }
   #layout.editing { grid-template-columns: minmax(0, 1fr) 15rem; } /* room for the Add item form */
   /* The top bar is a chassis plate that stays in view; a bevel line marks its lower edge */
   #cal-wrap { position: sticky; top: 0; z-index: 2; padding-bottom: .6rem;
-    background: repeating-linear-gradient(0deg, #666 0 2px, #626262 2px 3px) var(--chassis);
+    background: var(--chassis);
     box-shadow: 0 1px 0 var(--chassis-lo), 0 2px 0 var(--chassis-hi); }
   .items thead th { position: sticky; top: var(--head-top, 0); z-index: 1; } /* column titles stay below the calendar */
   #filters { position: sticky; top: var(--head-top, 0); max-height: calc(100vh - var(--head-top, 0px)); overflow-y: auto; box-sizing: border-box;
@@ -116,22 +117,26 @@
   .chips { display: grid; grid-template-columns: 1fr; gap: .3rem; } /* one vertical column per filter group */
   .chips > span { display: flex; }
   .chips > span > button:first-child { flex: 1; }
-  .chips button { position: relative; text-align: left; padding: .45rem 1.6rem .45rem .6rem; color: var(--label);
-    font: 600 .78rem 'Chakra Petch', sans-serif; letter-spacing: .08em;
+  .chips button { position: relative; text-align: left; padding: .45rem 1.6rem .45rem 1.65rem; color: var(--label);
+    font: 600 .76rem 'Chakra Petch', sans-serif; letter-spacing: .05em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     border: 1px solid var(--recess-lo); background: linear-gradient(180deg, #3D3D3D, var(--recess) 60%, #2A2A2A);
     box-shadow: inset 0 1px 0 var(--recess-hi); }
-  .chips button::after { content: ''; position: absolute; right: .45rem; top: 50%; width: 10px; height: 10px; margin-top: -5px;
-    background: var(--led-off); } /* LED off */
-  .chips button[aria-pressed=true] { color: var(--on-primary); background: linear-gradient(180deg, #4A1A30, #2E0F1D 60%, #22040F); }
+  /* LED on the left; it alone shows the pressed state (no fill change) */
+  .chips button::after { content: ''; position: absolute; left: .45rem; top: 50%; width: 14px; height: 14px; margin-top: -7px;
+    background: var(--led-off); }
+  .chips button[aria-pressed=true] { color: var(--on-primary); }
   .chips button[aria-pressed=true]::after { background: var(--led-on); }
-  /* Stippled triangle beside the LED, as on the reference tabs */
-  .chips button::before { content: ''; position: absolute; right: 1.3rem; top: 0; bottom: 0; width: 1.4rem; pointer-events: none;
+  /* Stippled triangle at the right end, as on the reference tabs; course buttons stipple it in their colour */
+  .chips button::before { content: ''; position: absolute; right: 0; top: 0; bottom: 0; width: 1.5rem; pointer-events: none;
     background: repeating-linear-gradient(135deg, rgba(255, 255, 255, .09) 0 1px, transparent 1px 3px);
     clip-path: polygon(100% 0, 100% 100%, 0 100%); }
+  .chips button.course::before { background: repeating-linear-gradient(135deg, var(--c) 0 1.5px, transparent 1.5px 3px); }
   .chips button.eye::before { content: none; }
   .chips button:hover { color: var(--on-primary); background: linear-gradient(180deg, #474747, #3A3A3A 60%, #2E2E2E); }
-  .chips button[aria-pressed=true]:hover { background: linear-gradient(180deg, #5A2038, #3A1424 60%, #2A0614); }
-  .chips button.course { border-left: 4px solid var(--c); } /* colour edge only on course buttons */
+  /* Course buttons tilt 30 degrees down, pivoting on their bottom-left corner; padding keeps the last one inside the sidebar */
+  #courses { gap: .5rem; padding-bottom: 5.1rem; } /* about half the sidebar width: how far the last tilted button drops */
+  #layout.editing #courses { padding-bottom: 7.6rem; }
+  #courses > * { transform: rotate(30deg); transform-origin: left bottom; }
   .chips .off { opacity: .5; }
   .chips button.eye, .chips button.eye:hover { background: none; color: var(--c); border: 0; box-shadow: none; clip-path: none;
     padding: 0 .2rem; vertical-align: middle; }
@@ -191,7 +196,7 @@
   .day.today h3 { color: var(--led-text); }
   .day.today h3::after { content: ''; display: inline-block; width: 10px; height: 10px; margin-left: .3rem; vertical-align: -2px;
     background: var(--led-on); }
-  .day.weekend { background: var(--weekend-bg); }
+  .day.weekend { background: var(--scanlines), var(--weekend-bg); }
   .day.hl { background: rgba(224, 69, 127, .2); box-shadow: inset 0 0 0 2px var(--led); } /* hovered row's due day */
   .day p { margin: 0 0 .3rem; border-left: 3px solid var(--c); padding-left: .3rem; font-size: .85em; line-height: 1.2; }
   .day p b { color: var(--c); font-weight: 600; }
