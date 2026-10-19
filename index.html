@@ -57,17 +57,17 @@
 
   /* Chamfered corners: top-left and bottom-right cut, like the reference consoles */
   /* Casing around every screen, built as stacked chamfered layers so every edge, diagonals included, stays connected:
-       1. the casing itself: outer bevel, lit top-left and in shadow bottom-right, mitred at the uncut corners;
+       1. the casing itself: a bright outer edge, one colour all round;
        2. ::before (1.5px in): the shaded metal face with a slotted screw in each uncut corner and grip ticks;
-       3. ::after (5.5px in): the inner bevel, reversed (shadow top-left, lit bottom-right) so the glass sits recessed;
+       3. ::after (5.5px in): a dark inner lip, one colour all round, so the glass sits recessed;
        4. the screen (7px in), chamfered too, behind its black lip.
      Each layer's cut shrinks by 0.586 x its inset (2 - sqrt 2), which keeps the frame an even width along the 45-degree cut. */
-  .bezel { --cut: 12px; --c: var(--cut); position: relative; isolation: isolate; padding: 7px; box-sizing: border-box;
-    background: linear-gradient(135deg, #C4C4C4 50%, #111 50%); }
+  .bezel { --cut: 12px; --ch: var(--cut); position: relative; isolation: isolate; padding: 7px; box-sizing: border-box;
+    background: #ABABAB; }
   .bezel, .bezel::before, .bezel::after, .bezel > * {
-    clip-path: polygon(var(--c) 0, 100% 0, 100% calc(100% - var(--c)), calc(100% - var(--c)) 100%, 0 100%, 0 var(--c)); }
+    clip-path: polygon(var(--ch) 0, 100% 0, 100% calc(100% - var(--ch)), calc(100% - var(--ch)) 100%, 0 100%, 0 var(--ch)); }
   .bezel::before, .bezel::after { content: ''; position: absolute; z-index: -1; pointer-events: none; }
-  .bezel::before { inset: 1.5px; --c: 11.1px;
+  .bezel::before { inset: 1.5px; --ch: 11.1px;
     background:
       linear-gradient(45deg, transparent 42%, #1E1E1E 42% 58%, transparent 58%) right 1px top 1px / 4px 4px no-repeat, /* screw slots */
       linear-gradient(45deg, transparent 42%, #1E1E1E 42% 58%, transparent 58%) left 1px bottom 1px / 4px 4px no-repeat,
@@ -75,8 +75,8 @@
       radial-gradient(circle closest-side, #C2C2C2 0 30%, #707070 55%, #262626 80%, transparent 86%) left 0 bottom 0 / 4px 4px no-repeat,
       repeating-linear-gradient(90deg, #262626 0 2px, transparent 2px 5px) left 20px bottom 1px / 42px 2px no-repeat, /* grip ticks */
       linear-gradient(160deg, #8E8E8E, #5E5E5E 35%, #4A4A4A 65%, #353535); }
-  .bezel::after { inset: 5.5px; --c: 8.8px; background: linear-gradient(135deg, #151515 50%, #A0A0A0 50%); }
-  .bezel > * { --c: 7.9px; }
+  .bezel::after { inset: 5.5px; --ch: 8.8px; background: #151515; }
+  .bezel > * { --ch: 7.9px; }
   .bezel.fit { width: fit-content; }
   .bezel.grow { flex: 1; min-width: 0; }
   #top > .bezel:first-child { flex: none; }
@@ -305,7 +305,9 @@
   /* Next boxes: as tall as the calendar. A recessed title plate with a lit LED, then the readout. Text scales with the
      box width (cqw), capped. Course and title on the left; date, time and details right-aligned opposite them. */
   .next { height: calc(2 * var(--day) + 8px); /* the calendar's height: two rows, its 2px padding and 2px lip */ box-sizing: border-box; overflow: hidden; padding: 0 .7rem .6rem;
-    display: flex; flex-direction: column; container-type: inline-size; border-left: 4px solid var(--c, var(--screen-line)); }
+    display: flex; flex-direction: column; container-type: inline-size; position: relative; }
+  /* Course colour bar down the left edge, starting below the chamfered corner so the cut never slices it */
+  .next::before { content: ''; position: absolute; z-index: 1; left: 0; top: 9px; bottom: 0; width: 4px; background: var(--c, var(--screen-line)); }
   .next p { margin: 0 0 .2rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .next h3 { position: relative; margin: 0 -.7rem .6rem; padding: .45rem 1.8rem .45rem .7rem;
     font: .5rem var(--display); letter-spacing: .08em; text-transform: uppercase; color: var(--label); white-space: nowrap;
