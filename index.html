@@ -130,16 +130,25 @@
     color: var(--screen-text); border: 2px solid #050505; text-shadow: var(--bloom); /* black lip where the glass meets the casing */
     box-shadow: inset 0 0 0 1px var(--recess-lo), inset 2px 2px 0 #06141A, 0 1px 0 var(--chassis-hi); }
 
-  /* Section labels: tiny wide-tracked caps between rows of hollow blocks */
-  .list-h, #grades caption, #sources caption { display: flex; align-items: center; gap: .7rem; margin: .6rem 0 .35rem;
-    font: .62rem var(--display); letter-spacing: .32em; text-transform: uppercase; color: var(--label); }
-  .list-h::before, .list-h::after { content: ''; height: .5rem; flex: 0 0 2.6rem; border: 1px solid var(--label-dim); border-width: 1px 0;
-    background: repeating-linear-gradient(90deg, var(--label-dim) 0 1px, transparent 1px 10px, var(--label-dim) 10px 11px, transparent 11px 13px); }
-  .list-h::after { flex: 1; }
-  /* The label is a dark tab plate between the ornaments: name, item count readout, status lamp */
-  .list-h .tab { display: inline-flex; align-items: center; gap: .55rem; padding: .35rem .6rem .35rem .75rem;
-    background: linear-gradient(180deg, #3D3D3D, var(--recess) 60%, #2A2A2A); box-shadow: inset 0 1px 0 var(--recess-hi), 0 1px 0 var(--chassis-hi);
-    clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px); }
+  /* Section title: a tab plate standing on top of its screen's casing, inset past the casing's cut corner. Its bright
+     edge matches the casing's; it overlaps the casing's edge and paints over it, so its plate runs straight into the
+     casing's metal face and the two read as one piece. */
+  .list-h { position: relative; z-index: 1; display: flex; margin: 0 0 -3.5px; padding-left: 13px; font: .62rem var(--display); letter-spacing: .32em;
+    text-transform: uppercase; color: var(--label); }
+  .list-h .tab { position: relative; isolation: isolate; display: inline-flex; align-items: center; gap: .55rem;
+    padding: .4rem .65rem .45rem .8rem; background: #ABABAB; /* edge ring, same as the casing's outer edge */
+    clip-path: polygon(8px 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%, 0 8px); }
+  .list-h .tab::before { content: ''; position: absolute; inset: 1.5px 1.5px 0; z-index: -1;
+    background: linear-gradient(180deg, #3D3D3D, var(--recess) 60%, #2A2A2A);
+    clip-path: polygon(7.1px 0, calc(100% - 7.1px) 0, 100% 7.1px, 100% 100%, 0 100%, 0 7.1px); }
+  /* Back panel behind each section (title and screen), its edge 5px out from the casing. Its cut is the casing's 12px
+     plus 0.586 x 5px, so the gap stays 5px along the diagonals too. A dark edge, then a slightly recessed face. */
+  #tests-part, #labs-part, #work-part { position: relative; isolation: isolate; padding: 5px; background: #2B2B2B;
+    clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px); }
+  #tests-part::before, #labs-part::before, #work-part::before { content: ''; position: absolute; inset: 1px; z-index: -1;
+    background: linear-gradient(180deg, #4E4E4E, #565656 30%, #5A5A5A);
+    clip-path: polygon(14.4px 0, 100% 0, 100% calc(100% - 14.4px), calc(100% - 14.4px) 100%, 0 100%, 0 14.4px); }
+  #work-part { margin-top: 1rem; }
   .list-h .count { font: 600 .7rem 'Chakra Petch', sans-serif; letter-spacing: .1em; color: var(--label); padding: .05rem .35rem;
     background: #1E1E1E; box-shadow: inset 1px 1px 0 var(--recess-lo), inset -1px -1px 0 var(--recess-hi); }
   .list-h .lamp { margin-right: 0; }
