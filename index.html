@@ -27,10 +27,21 @@
     --glare: linear-gradient(160deg, rgba(255, 255, 255, .05), rgba(255, 255, 255, 0) 35%); /* light across the glass */
     --scanlines: repeating-linear-gradient(0deg, rgba(255, 255, 255, .025) 0 1px, transparent 1px 3px); /* CRT lines, screens only */
     /* LEDs: radial-gradient dots, so no rounded corners are needed */
-    --led-off: radial-gradient(circle closest-side, #5A5A5A 0 50%, #2A2A2A 60% 80%, transparent 90%);
-    --led-on: radial-gradient(circle closest-side, #FFE3EE 0 20%, var(--led) 40% 60%, var(--led-glow) 70%, transparent 100%);
-    --led-on-ok: radial-gradient(circle closest-side, #E6FFEE 0 20%, var(--led-ok) 40% 60%, rgba(87, 227, 137, .5) 70%, transparent 100%);
-    --led-on-amber: radial-gradient(circle closest-side, #FFF4D6 0 20%, var(--amber) 40% 60%, rgba(242, 177, 52, .5) 70%, transparent 100%);
+    /* An LED is three layers: a white glint, a domed lens (dim tinted glass when off, a hot core when on), and a metal
+       socket ring. Lit ones also get a round glow from filter: drop-shadow (it follows the dot, not the box). */
+    --led-glint: radial-gradient(circle closest-side at 36% 32%, rgba(255, 255, 255, .7) 0 9%, rgba(255, 255, 255, 0) 22%);
+    --led-socket: radial-gradient(circle closest-side, transparent 63%, #0B0B0B 66%, #5C5C5C 76%, #222 88%, transparent 93%);
+    --led-off: var(--led-glint),
+      radial-gradient(circle closest-side at 45% 40%, #6A2A41 0, #3E1222 40%, #1C060F 62%, transparent 64%), var(--led-socket);
+    --led-on: var(--led-glint),
+      radial-gradient(circle closest-side at 45% 40%, #FFF0F5 0 10%, #FF7AAA 28%, var(--led) 46%, #8C1444 62%, transparent 64%), var(--led-socket);
+    --led-on-ok: var(--led-glint),
+      radial-gradient(circle closest-side at 45% 40%, #F0FFF4 0 10%, #8CF2AE 28%, var(--led-ok) 46%, #1D7A43 62%, transparent 64%), var(--led-socket);
+    --led-on-amber: var(--led-glint),
+      radial-gradient(circle closest-side at 45% 40%, #FFF8E6 0 10%, #FFD27A 28%, var(--amber) 46%, #8A5A0C 62%, transparent 64%), var(--led-socket);
+    --glow: drop-shadow(0 0 3px var(--led-glow));
+    --glow-ok: drop-shadow(0 0 3px rgba(87, 227, 137, .6));
+    --glow-amber: drop-shadow(0 0 3px rgba(242, 177, 52, .6));
   }
   html { overscroll-behavior: none; scrollbar-color: var(--chassis-hi) var(--recess); } /* no rubber-band bounce (macOS) */
   /* Brushed gunmetal: fine horizontal grain over the chassis grey */
@@ -142,10 +153,10 @@
   .chips button::after { content: ''; position: absolute; left: .4rem; top: 50%; width: 20px; height: 20px; margin-top: -10px;
     background: var(--led-off); }
   .chips button[aria-pressed=true] { color: var(--on-primary); }
-  .chips button[aria-pressed=true]::after { background: var(--led-on); }
+  .chips button[aria-pressed=true]::after { background: var(--led-on); filter: var(--glow); }
   /* Stippled triangle at the right end, as on the reference tabs; course buttons stipple it in their colour */
   .chips button::before { content: ''; position: absolute; right: 0; top: 0; bottom: 0; width: 1.5rem; pointer-events: none;
-    background: repeating-linear-gradient(135deg, rgba(255, 255, 255, .09) 0 1px, transparent 1px 3px);
+    background: repeating-linear-gradient(0deg, var(--label-dim) 0 1px, transparent 1px 3px); /* horizontal lines; grey unless a course */
     clip-path: polygon(100% 0, 100% 100%, 0 100%); }
   /* Course buttons: the triangle is filled with horizontal lines in the course colour, and a line of it runs along the bottom */
   .chips button.course::before { background: repeating-linear-gradient(0deg, var(--c) 0 1px, transparent 1px 3px); }
@@ -217,7 +228,7 @@
   .day.today h3 b { color: var(--led-text); }
   .day.today { box-shadow: inset 0 2px 0 var(--led); }
   .day.today h3 { color: var(--led-text); }
-  .day.today h3::after { content: ''; align-self: center; width: 14px; height: 14px; margin-left: auto; background: var(--led-on); }
+  .day.today h3::after { content: ''; align-self: center; width: 14px; height: 14px; margin-left: auto; background: var(--led-on); filter: var(--glow); }
   .day.weekend { background: var(--scanlines), var(--weekend-bg); }
   .day:hover { box-shadow: inset 0 0 0 1px var(--bracket); }
   .day.today:hover { box-shadow: inset 0 2px 0 var(--led), inset 0 0 0 1px var(--bracket); }
@@ -243,9 +254,9 @@
   /* Status lamps: green ok, amber attention, maroon problem. Used by the nameplate, section headings and the sync table. */
   #links span::after, .lamp { content: ''; display: inline-block; width: 14px; height: 14px; vertical-align: -3px; background: var(--led-off); }
   #links span::after { margin-left: .3rem; }
-  #links .ok::after, .lamp.ok { background: var(--led-on-ok); }
-  #links .login::after, .lamp.login { background: var(--led-on-amber); }
-  #links .error::after, .lamp.error { background: var(--led-on); }
+  #links .ok::after, .lamp.ok { background: var(--led-on-ok); filter: var(--glow-ok); }
+  #links .login::after, .lamp.login { background: var(--led-on-amber); filter: var(--glow-amber); }
+  #links .error::after, .lamp.error { background: var(--led-on); filter: var(--glow); }
   .lamp { margin-right: .35rem; }
   #synced, #host, #tally { font: .52rem var(--display); letter-spacing: .14em; text-transform: uppercase; color: var(--label); padding: .35rem .55rem;
     background: var(--recess); box-shadow: inset 1px 1px 0 var(--recess-lo), inset -1px -1px 0 var(--recess-hi); white-space: nowrap; }
@@ -261,7 +272,7 @@
     font: .5rem var(--display); letter-spacing: .08em; text-transform: uppercase; color: var(--label); white-space: nowrap;
     background: linear-gradient(180deg, #3D3D3D, var(--recess) 60%, #2A2A2A); box-shadow: inset 0 -1px 0 var(--recess-lo); }
   .next h3::after { content: ''; position: absolute; right: .5rem; top: 50%; width: 14px; height: 14px; margin-top: -7px;
-    background: var(--led-on); }
+    background: var(--led-on); filter: var(--glow); }
   @container (max-width: 130px) { .next h3::after { content: none; } .next h3 { padding-right: .7rem; } } /* no room for the LED */
   /* Countdown meter: LED segments for the share of the next 14 days still left before the due time */
   .next .meter { flex: none; margin-top: auto; height: 9px;
