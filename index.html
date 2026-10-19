@@ -27,18 +27,18 @@
     --glare: linear-gradient(160deg, rgba(255, 255, 255, .05), rgba(255, 255, 255, 0) 35%); /* light across the glass */
     --scanlines: repeating-linear-gradient(0deg, rgba(255, 255, 255, .025) 0 1px, transparent 1px 3px); /* CRT lines, screens only */
     /* LEDs: radial-gradient dots, so no rounded corners are needed */
-    /* An LED is three layers: a white glint, a domed lens (dim tinted glass when off, a hot core when on), and a metal
+    /* An LED is three layers: a white glint, a domed lens filling the socket (dim tinted glass when off, a hot core when on), and a metal
        socket ring. Lit ones also get a round glow from filter: drop-shadow (it follows the dot, not the box). */
     --led-glint: radial-gradient(circle closest-side at 36% 32%, rgba(255, 255, 255, .7) 0 9%, rgba(255, 255, 255, 0) 22%);
     --led-socket: radial-gradient(circle closest-side, transparent 63%, #0B0B0B 66%, #5C5C5C 76%, #222 88%, transparent 93%);
     --led-off: var(--led-glint),
-      radial-gradient(circle closest-side at 45% 40%, #6A2A41 0, #3E1222 40%, #1C060F 62%, transparent 64%), var(--led-socket);
+      radial-gradient(circle closest-side, #6A2A41 0, #3E1222 40%, #1C060F 64%, transparent 66%), var(--led-socket);
     --led-on: var(--led-glint),
-      radial-gradient(circle closest-side at 45% 40%, #FFF0F5 0 10%, #FF7AAA 28%, var(--led) 46%, #8C1444 62%, transparent 64%), var(--led-socket);
+      radial-gradient(circle closest-side, #FFF0F5 0 10%, #FF7AAA 28%, var(--led) 46%, #8C1444 64%, transparent 66%), var(--led-socket);
     --led-on-ok: var(--led-glint),
-      radial-gradient(circle closest-side at 45% 40%, #F0FFF4 0 10%, #8CF2AE 28%, var(--led-ok) 46%, #1D7A43 62%, transparent 64%), var(--led-socket);
+      radial-gradient(circle closest-side, #F0FFF4 0 10%, #8CF2AE 28%, var(--led-ok) 46%, #1D7A43 64%, transparent 66%), var(--led-socket);
     --led-on-amber: var(--led-glint),
-      radial-gradient(circle closest-side at 45% 40%, #FFF8E6 0 10%, #FFD27A 28%, var(--amber) 46%, #8A5A0C 62%, transparent 64%), var(--led-socket);
+      radial-gradient(circle closest-side, #FFF8E6 0 10%, #FFD27A 28%, var(--amber) 46%, #8A5A0C 64%, transparent 66%), var(--led-socket);
     --glow: drop-shadow(0 0 3px var(--led-glow));
     --glow-ok: drop-shadow(0 0 3px rgba(87, 227, 137, .6));
     --glow-amber: drop-shadow(0 0 3px rgba(242, 177, 52, .6));
