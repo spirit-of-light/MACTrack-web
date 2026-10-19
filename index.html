@@ -131,28 +131,30 @@
     box-shadow: inset 0 0 0 1px var(--recess-lo), inset 2px 2px 0 #06141A, 0 1px 0 var(--chassis-hi); }
 
   /* Section title: a tab plate standing on top of its screen's casing. Its left edge is one 45-degree diagonal that
-     continues the casing's top-left cut (the cut line x + y = 12px, extended upward), so casing bevel and tab edge form one
-     line. Bright edge on the top and that diagonal only; the right side is a plain vertical. The tab overlaps the casing's
-     edge by 3.5px and paints over it, so its plate runs straight into the casing's metal face. A vent fills the rest. */
+     continues the casing's top-left cut (the line x + y = 12px in casing coordinates, extended upward), so casing bevel and
+     tab edge form one line. Bright edge on the top, the diagonal and the right side (straight, no cut). The tab overlaps
+     only the casing's outermost light line (1.5px) and paints over it. A vent fills the rest of the row. */
   .list-h { --th: 26px; position: relative; z-index: 1; display: flex; align-items: center; gap: .7rem;
-    margin: 0 0 -3.5px; padding-left: 8.5px; /* where the cut line crosses 3.5px into the casing */
+    margin: 0 0 -1.5px; padding-left: 10.5px; /* where the cut line crosses 1.5px into the casing */
     font: .62rem var(--display); letter-spacing: .32em; text-transform: uppercase; color: var(--label); }
-  .list-h .vent { margin-bottom: 3.5px; }
+  .list-h .vent { margin-bottom: 1.5px; }
   .list-h .tab { position: relative; isolation: isolate; display: inline-flex; align-items: center; gap: .55rem;
-    height: var(--th); box-sizing: border-box; padding: 0 .65rem 0 calc(var(--th) * .8);
+    height: var(--th); box-sizing: border-box; padding: 0 .7rem 0 calc(var(--th) + .3rem);
     background: #ABABAB; /* edge, same as the casing's outer edge */
     clip-path: polygon(var(--th) 0, 100% 0, 100% 100%, 0 100%); }
-  /* face: 1.5px in from the top and from the diagonal (2.12px across at 45 degrees), flush with the right side */
-  .list-h .tab::before { content: ''; position: absolute; inset: 1.5px 0 0; z-index: -1;
+  /* face: 1.5px in from the top, the right side and the diagonal (2.12px across at 45 degrees) */
+  .list-h .tab::before { content: ''; position: absolute; inset: 1.5px 1.5px 0 0; z-index: -1;
     background: linear-gradient(180deg, #3D3D3D, var(--recess) 60%, #2A2A2A);
     clip-path: polygon(calc(var(--th) + .62px) 0, 100% 0, 100% 100%, 2.12px 100%); }
-  /* Back panel behind each section (title and screen), its edge 7px out from the casing. Its cut is the casing's 12px
-     plus 0.586 x 7px, so the gap stays 7px along the diagonals too. A dark edge, then a slightly recessed face. */
+  /* Back panel behind each section (title and screen), 7px out from the casing all round. Its top-left cut runs parallel to
+     the tab-and-casing diagonal 7px outside it: that diagonal is x + y = 50.5px in panel coordinates (7px padding + 26px tab
+     - 1.5px overlap + 12px casing cut + 7px), so the panel's is x + y = 50.5 - 7 x sqrt 2 = 40.6px. The bottom-right cut is
+     the casing's 12px + 0.586 x 7px = 16.1px. */
   #tests-part, #labs-part, #work-part { position: relative; isolation: isolate; padding: 7px; background: #2B2B2B;
-    clip-path: polygon(16.1px 0, 100% 0, 100% calc(100% - 16.1px), calc(100% - 16.1px) 100%, 0 100%, 0 16.1px); }
+    clip-path: polygon(40.6px 0, 100% 0, 100% calc(100% - 16.1px), calc(100% - 16.1px) 100%, 0 100%, 0 40.6px); }
   #tests-part::before, #labs-part::before, #work-part::before { content: ''; position: absolute; inset: 1px; z-index: -1;
     background: linear-gradient(180deg, #4E4E4E, #565656 30%, #5A5A5A);
-    clip-path: polygon(15.5px 0, 100% 0, 100% calc(100% - 15.5px), calc(100% - 15.5px) 100%, 0 100%, 0 15.5px); }
+    clip-path: polygon(40px 0, 100% 0, 100% calc(100% - 15.5px), calc(100% - 15.5px) 100%, 0 100%, 0 40px); }
   #work-part { margin-top: 1rem; }
   .list-h .count { font: 600 .7rem 'Chakra Petch', sans-serif; letter-spacing: .1em; color: var(--label); padding: .05rem .35rem;
     background: #1E1E1E; box-shadow: inset 1px 1px 0 var(--recess-lo), inset -1px -1px 0 var(--recess-hi); }
@@ -197,6 +199,7 @@
   .chips > span { display: flex; }
   .chips > span > button:first-child { flex: 1; }
   .chips button { position: relative; text-align: left; padding: .5rem 1.6rem .5rem 1.95rem; color: var(--label);
+    clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px); /* bigger cut than other buttons */
     font: 600 .76rem 'Chakra Petch', sans-serif; letter-spacing: .05em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     border: 1px solid var(--recess-lo); background: linear-gradient(180deg, #3D3D3D, var(--recess) 60%, #2A2A2A);
     box-shadow: inset 0 1px 0 var(--recess-hi); }
