@@ -56,18 +56,27 @@
   :focus-visible { outline: 2px solid var(--led); outline-offset: 2px; }
 
   /* Chamfered corners: top-left and bottom-right cut, like the reference consoles */
-  /* Casing around every screen: a raised gunmetal frame with bevelled edges, a screw in each uncut corner, grip ticks
-     along the bottom, and chamfered top-left / bottom-right corners. The screen sits inside behind a black lip. */
-  .bezel { --cut: 12px; position: relative; padding: 7px; box-sizing: border-box;
+  /* Casing around every screen, built as stacked chamfered layers so every edge, diagonals included, stays connected:
+       1. the casing itself: outer bevel, lit top-left and in shadow bottom-right, mitred at the uncut corners;
+       2. ::before (1.5px in): the shaded metal face with a slotted screw in each uncut corner and grip ticks;
+       3. ::after (5.5px in): the inner bevel, reversed (shadow top-left, lit bottom-right) so the glass sits recessed;
+       4. the screen (7px in), chamfered too, behind its black lip.
+     Each layer's cut shrinks by 0.586 x its inset (2 - sqrt 2), which keeps the frame an even width along the 45-degree cut. */
+  .bezel { --cut: 12px; --c: var(--cut); position: relative; isolation: isolate; padding: 7px; box-sizing: border-box;
+    background: linear-gradient(135deg, #C4C4C4 50%, #111 50%); }
+  .bezel, .bezel::before, .bezel::after, .bezel > * {
+    clip-path: polygon(var(--c) 0, 100% 0, 100% calc(100% - var(--c)), calc(100% - var(--c)) 100%, 0 100%, 0 var(--c)); }
+  .bezel::before, .bezel::after { content: ''; position: absolute; z-index: -1; pointer-events: none; }
+  .bezel::before { inset: 1.5px; --c: 11.1px;
     background:
-      linear-gradient(45deg, transparent 42%, #1E1E1E 42% 58%, transparent 58%) right 2px top 2px / 5px 5px no-repeat, /* screw slots */
-      linear-gradient(45deg, transparent 42%, #1E1E1E 42% 58%, transparent 58%) left 2px bottom 2px / 5px 5px no-repeat,
-      radial-gradient(circle closest-side, #B5B5B5 0 30%, #6E6E6E 55%, #2A2A2A 80%, transparent 85%) right 1px top 1px / 7px 7px no-repeat,
-      radial-gradient(circle closest-side, #B5B5B5 0 30%, #6E6E6E 55%, #2A2A2A 80%, transparent 85%) left 1px bottom 1px / 7px 7px no-repeat,
-      repeating-linear-gradient(90deg, #262626 0 2px, transparent 2px 5px) left 22px bottom 2px / 42px 3px no-repeat, /* grip ticks */
-      linear-gradient(160deg, #8E8E8E, #5E5E5E 35%, #4A4A4A 65%, #353535);
-    box-shadow: inset 1px 1px 0 #B8B8B8, inset -1px -1px 0 #161616, inset 2px 2px 0 rgba(255, 255, 255, .12), inset -2px -2px 0 rgba(0, 0, 0, .35);
-    clip-path: polygon(var(--cut) 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%, 0 var(--cut)); }
+      linear-gradient(45deg, transparent 42%, #1E1E1E 42% 58%, transparent 58%) right 1px top 1px / 4px 4px no-repeat, /* screw slots */
+      linear-gradient(45deg, transparent 42%, #1E1E1E 42% 58%, transparent 58%) left 1px bottom 1px / 4px 4px no-repeat,
+      radial-gradient(circle closest-side, #C2C2C2 0 30%, #707070 55%, #262626 80%, transparent 86%) right 0 top 0 / 4px 4px no-repeat,
+      radial-gradient(circle closest-side, #C2C2C2 0 30%, #707070 55%, #262626 80%, transparent 86%) left 0 bottom 0 / 4px 4px no-repeat,
+      repeating-linear-gradient(90deg, #262626 0 2px, transparent 2px 5px) left 20px bottom 1px / 42px 2px no-repeat, /* grip ticks */
+      linear-gradient(160deg, #8E8E8E, #5E5E5E 35%, #4A4A4A 65%, #353535); }
+  .bezel::after { inset: 5.5px; --c: 8.8px; background: linear-gradient(135deg, #151515 50%, #A0A0A0 50%); }
+  .bezel > * { --c: 7.9px; }
   .bezel.fit { width: fit-content; }
   .bezel.grow { flex: 1; min-width: 0; }
   #top > .bezel:first-child { flex: none; }
