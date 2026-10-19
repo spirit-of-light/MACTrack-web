@@ -23,6 +23,8 @@
     --weekend-bg: var(--screen-weekend);
     --display: Michroma, 'Chakra Petch', sans-serif;
     --bracket: #4F7887; /* corner marks on screens */
+    --bezel: #262626; /* dark frame every screen sits in */
+    --glare: linear-gradient(160deg, rgba(255, 255, 255, .05), rgba(255, 255, 255, 0) 35%); /* light across the glass */
     --scanlines: repeating-linear-gradient(0deg, rgba(255, 255, 255, .025) 0 1px, transparent 1px 3px); /* CRT lines, screens only */
     /* LEDs: radial-gradient dots, so no rounded corners are needed */
     --led-off: radial-gradient(circle closest-side, #5A5A5A 0 50%, #2A2A2A 60% 80%, transparent 90%);
@@ -81,9 +83,10 @@
       linear-gradient(var(--bracket), var(--bracket)) right 2px top 2px / 1px 10px no-repeat,
       linear-gradient(var(--bracket), var(--bracket)) left 2px bottom 2px / 10px 1px no-repeat,
       linear-gradient(var(--bracket), var(--bracket)) left 2px bottom 2px / 1px 10px no-repeat,
+      var(--glare),
       var(--scanlines),
       var(--screen);
-    color: var(--screen-text);
+    color: var(--screen-text); border: 4px solid var(--bezel);
     box-shadow: inset 0 0 0 1px var(--recess-lo), inset 2px 2px 0 #06141A, 0 1px 0 var(--chassis-hi); }
 
   /* Section labels: tiny wide-tracked caps between rows of hollow blocks */
@@ -98,12 +101,18 @@
   #sources, #grades { margin-top: 2rem; width: auto; }
   #sources { color: var(--screen-muted); }
   #grades td:first-child { color: var(--c); font-weight: 600; }
+  .gauge { display: inline-block; width: 6rem; height: 9px; margin-right: .5rem; vertical-align: -1px;
+    background: repeating-linear-gradient(90deg, var(--c) 0 4px, transparent 4px 6px) 0 0 / var(--fill, 0%) 100% no-repeat,
+      repeating-linear-gradient(90deg, #24434F 0 4px, transparent 4px 6px); }
   .items tbody td.empty { padding: 1rem .3rem; text-align: left; color: var(--screen-muted); } /* beats the ✓ column centring */
   .items td.empty button { margin-left: .6rem; }
 
   /* Item list with the filter sidebar on its right */
-  #layout { display: grid; grid-template-columns: minmax(0, 1fr) 10rem; gap: 1.5rem; align-items: start; }
-  #layout.editing { grid-template-columns: minmax(0, 1fr) 15rem; } /* room for the Add item form */
+  #layout { display: grid; grid-template-columns: minmax(0, 1fr) 10rem; gap: 1.5rem; align-items: start; --side: 10rem;
+    /* a bevelled seam in the chassis between the list and the sidebar */
+    background: linear-gradient(var(--chassis-lo), var(--chassis-lo)) right calc(var(--side) + .75rem) top 0 / 1px 100% no-repeat,
+      linear-gradient(var(--chassis-hi), var(--chassis-hi)) right calc(var(--side) + .75rem - 1px) top 0 / 1px 100% no-repeat; }
+  #layout.editing { grid-template-columns: minmax(0, 1fr) 15rem; --side: 15rem; } /* room for the Add item form */
   /* The top bar is a chassis plate that stays in view; a bevel line marks its lower edge */
   #cal-wrap { position: sticky; top: 0; z-index: 2; padding-bottom: .6rem;
     background: var(--chassis);
@@ -181,17 +190,23 @@
     background: linear-gradient(180deg, #3D3D3D, var(--recess) 60%, #2A2A2A); box-shadow: inset 0 1px 0 var(--recess-hi); }
   #cal-nav button:hover { color: var(--led); }
   /* Calendar: the main display. Fixed square days, 7 per row; a full day hides its last items behind "+N more" */
-  #calendar { flex: none; display: grid; grid-template-columns: repeat(7, var(--day)); grid-auto-rows: var(--day);
+  #calendar { flex: none; display: grid; grid-template-columns: 1.5rem repeat(7, var(--day)); grid-auto-rows: var(--day);
     padding: 2px; }
   .day { border-right: 1px solid var(--screen-line); border-bottom: 1px solid var(--screen-line); padding: .35rem .45rem;
     box-sizing: border-box; overflow: hidden; overflow-wrap: anywhere; }
-  .day:nth-child(7n) { border-right: 0; }
+  .day:nth-child(8n) { border-right: 0; } /* 8 cells a row: week strip + 7 days */
   .day:nth-last-child(-n + 7) { border-bottom: 0; }
-  .day h3 { font: .56rem var(--display); letter-spacing: .12em; text-transform: uppercase; margin: 0 0 .35rem; color: var(--screen-muted); }
+  /* Week strip: a recessed plate down the left of each row with the ISO week number */
+  .wk { writing-mode: sideways-lr; text-align: center; font: .5rem var(--display); letter-spacing: .22em; color: var(--label);
+    background: linear-gradient(90deg, #3D3D3D, var(--recess) 60%, #2A2A2A); box-shadow: inset 0 -1px 0 var(--recess-lo); }
+  /* Day header: big date numeral, weekday and month small beside it */
+  .day h3 { display: flex; align-items: baseline; gap: .35rem; margin: 0 0 .35rem;
+    font: .52rem var(--display); letter-spacing: .12em; text-transform: uppercase; color: var(--screen-muted); }
+  .day h3 b { font: 1.2rem var(--display); letter-spacing: 0; color: var(--screen-text); }
+  .day.today h3 b { color: var(--led-text); }
   .day.today { box-shadow: inset 0 2px 0 var(--led); }
   .day.today h3 { color: var(--led-text); }
-  .day.today h3::after { content: ''; display: inline-block; width: 10px; height: 10px; margin-left: .3rem; vertical-align: -2px;
-    background: var(--led-on); }
+  .day.today h3::after { content: ''; align-self: center; width: 14px; height: 14px; margin-left: auto; background: var(--led-on); }
   .day.weekend { background: var(--scanlines), var(--weekend-bg); }
   .day.hl { background: rgba(224, 69, 127, .2); box-shadow: inset 0 0 0 2px var(--led); } /* hovered row's due day */
   .day p { margin: 0 0 .3rem; border-left: 3px solid var(--c); padding-left: .3rem; font-size: .85em; line-height: 1.2; }
@@ -212,23 +227,26 @@
     background: repeating-linear-gradient(90deg, var(--recess-lo) 0 2px, var(--chassis-hi) 2px 3px, transparent 3px 6px);
     box-shadow: inset 0 1px 0 var(--chassis-lo), 0 1px 0 var(--chassis-hi); }
   #links { display: flex; gap: 1rem; font: 600 .66rem 'Chakra Petch', sans-serif; letter-spacing: .14em; text-transform: uppercase; color: var(--label); }
-  #links span::after { content: ''; display: inline-block; width: 10px; height: 10px; margin-left: .3rem; vertical-align: -1px; background: var(--led-off); }
-  #links .ok::after { background: var(--led-on-ok); }
-  #links .login::after { background: var(--led-on-amber); }
-  #links .error::after { background: var(--led-on); }
+  /* Status lamps: green ok, amber attention, maroon problem. Used by the nameplate, section headings and the sync table. */
+  #links span::after, .lamp { content: ''; display: inline-block; width: 14px; height: 14px; vertical-align: -3px; background: var(--led-off); }
+  #links span::after { margin-left: .3rem; }
+  #links .ok::after, .lamp.ok { background: var(--led-on-ok); }
+  #links .login::after, .lamp.login { background: var(--led-on-amber); }
+  #links .error::after, .lamp.error { background: var(--led-on); }
+  .lamp { margin-right: .35rem; }
   #synced, #host { font: .52rem var(--display); letter-spacing: .14em; text-transform: uppercase; color: var(--label); padding: .35rem .55rem;
     background: var(--recess); box-shadow: inset 1px 1px 0 var(--recess-lo), inset -1px -1px 0 var(--recess-hi); white-space: nowrap; }
   #foot { display: flex; align-items: center; gap: 1rem; margin-top: 1.4rem; }
   #next-test, #next-lab { flex: 1; min-width: 0; } /* two equal boxes fill the rest of the top bar */
   /* Next boxes: as tall as the calendar. A recessed title plate with a lit LED, then the readout. Text scales with the
      box width (cqw), capped. Course and title on the left; date, time and details right-aligned opposite them. */
-  .next { height: calc(2 * var(--day) + 4px); box-sizing: border-box; overflow: hidden; padding: 0 .7rem .6rem;
+  .next { height: calc(2 * var(--day) + 12px); /* the calendar's height: two rows, padding and bezel */ box-sizing: border-box; overflow: hidden; padding: 0 .7rem .6rem;
     display: flex; flex-direction: column; container-type: inline-size; border-left: 4px solid var(--c, var(--screen-line)); }
   .next p { margin: 0 0 .2rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .next h3 { position: relative; margin: 0 -.7rem .6rem; padding: .45rem 1.8rem .45rem .7rem;
     font: .5rem var(--display); letter-spacing: .08em; text-transform: uppercase; color: var(--label); white-space: nowrap;
     background: linear-gradient(180deg, #3D3D3D, var(--recess) 60%, #2A2A2A); box-shadow: inset 0 -1px 0 var(--recess-lo); }
-  .next h3::after { content: ''; position: absolute; right: .55rem; top: 50%; width: 10px; height: 10px; margin-top: -5px;
+  .next h3::after { content: ''; position: absolute; right: .5rem; top: 50%; width: 14px; height: 14px; margin-top: -7px;
     background: var(--led-on); }
   @container (max-width: 130px) { .next h3::after { content: none; } .next h3 { padding-right: .7rem; } } /* no room for the LED */
   /* Countdown meter: LED segments for the share of the next 14 days still left before the due time */
@@ -272,16 +290,16 @@
   <p id="summary" class="info"></p>
   <div id="pair">
   <div id="tests-part">
-    <h2 class="list-h">Tests<span class="count"></span></h2>
+    <h2 class="list-h">Tests<span class="count"></span><span class="lamp"></span></h2>
     <table id="tests" class="items"><colgroup></colgroup><thead></thead><tbody></tbody></table>
   </div>
   <div id="labs-part">
-    <h2 class="list-h">Labs<span class="count"></span></h2>
+    <h2 class="list-h">Labs<span class="count"></span><span class="lamp"></span></h2>
     <table id="labs" class="items"><colgroup></colgroup><thead></thead><tbody></tbody></table>
   </div>
   </div>
   <div id="work-part">
-    <h2 class="list-h">Coursework<span class="count"></span></h2>
+    <h2 class="list-h">Coursework<span class="count"></span><span class="lamp"></span></h2>
     <table id="items" class="items"><colgroup></colgroup><thead></thead><tbody id="list"></tbody></table>
   </div>
   <table id="grades">
@@ -543,6 +561,13 @@ const chips = (values, current, pick) => ['', ...values].map((v) => {
 });
 
 // CAL_DAYS days from today + calOffset, each with the items due that local day.
+// ISO 8601 week number of a local date.
+const isoWeek = (d) => {
+  const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  t.setUTCDate(t.getUTCDate() + 4 - (t.getUTCDay() || 7));
+  return Math.ceil(((t - Date.UTC(t.getUTCFullYear(), 0, 1)) / 864e5 + 1) / 7);
+};
+
 function calendar(items, colorOf) {
   const start = new Date();
   start.setHours(0, 0, 0, 0);
@@ -556,9 +581,10 @@ function calendar(items, colorOf) {
     const day = localInput(from.toISOString())[0];
     const hl = (on) => document.querySelectorAll(`.items tbody tr[data-day="${day}"]`).forEach((tr) => tr.classList.toggle('hl', on));
     const label = from.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+    const small = today ? 'Today' : from.toLocaleDateString(undefined, { weekday: 'short', month: 'short' });
     const weekend = from.getDay() === 0 || from.getDay() === 6;
     const cell = $('div', { className: ['day', ...(today ? ['today'] : []), ...(weekend ? ['weekend'] : [])].join(' '), onmouseenter: () => hl(true), onmouseleave: () => hl(false) },
-      $('h3', { textContent: today ? `${label} (today)` : label }),
+      $('h3', {}, $('b', { textContent: String(from.getDate()).padStart(2, '0') }), $('span', { textContent: small })),
       ...items.filter((i) => dueMs(i) >= from && dueMs(i) < to).sort((a, b) => dueMs(a) - dueMs(b)).map((i) => {
         const c = i.course ?? '(no course)';
         const p = $('p', { className: i.done ? 'done' : '' }, $('b', { textContent: c }), ` ${i.title ?? ''}`);
@@ -566,8 +592,14 @@ function calendar(items, colorOf) {
         return p;
       }));
     cell.dataset.day = day;
-    return cell;
-  });
+    cell.dataset.label = today ? `${label} (today)` : label;
+    if (k % 7) return [cell];
+    // each row of 7 days opens with its week strip: the ISO week(s) it covers
+    const last = new Date(from);
+    last.setDate(from.getDate() + 6);
+    const [a, b] = [isoWeek(from), isoWeek(last)];
+    return [tip($('div', { className: 'wk', textContent: a === b ? `Wk ${a}` : `Wk ${a}-${b}` }), a === b ? `Week ${a}` : `Weeks ${a} and ${b}`), cell];
+  }).flat();
 }
 
 function render() {
@@ -585,7 +617,7 @@ function render() {
   // AC30: sync status per source in the bottom table; for "login needed" the word "login" is the sign-in link.
   document.querySelector('#sources tbody').replaceChildren(...Object.entries(status).map(([src, s]) => $('tr', {},
     $('td', { textContent: src[0].toUpperCase() + src.slice(1) }),
-    $('td', {}, ...(s.status === 'login needed'
+    $('td', {}, $('span', { className: `lamp ${{ ok: 'ok', 'login needed': 'login', error: 'error' }[s.status] ?? ''}` }), ...(s.status === 'login needed'
       ? [$('a', { href: LOGIN[src], target: '_blank', rel: 'noopener', textContent: 'login' }), ' needed']
       : [s.status])),
     $('td', {}, s.synced_at ? dateTime(s.synced_at) : ''))));
@@ -625,10 +657,10 @@ function render() {
   const picked = (c) => !course || c === course;
   const cal = document.getElementById('calendar');
   cal.replaceChildren(...calendar(data.items.filter((i) => visible.includes(courseOf(i)) && picked(courseOf(i)) && keep(i)), colorOf));
-  for (const day of cal.children) { // a day with more than fits hides its last items behind "+N more"
+  for (const day of cal.querySelectorAll('.day')) { // a day with more than fits hides its last items behind "+N more"
     if (day.scrollHeight <= day.clientHeight) continue;
     const items = [...day.querySelectorAll('p')];
-    tip(day, [day.querySelector('h3').textContent, ...items.map((p) => p.textContent)].join('\n')); // what "+N more" hides
+    tip(day, [day.dataset.label, ...items.map((p) => p.textContent)].join('\n')); // what "+N more" hides
     const more = day.appendChild($('div', { className: 'more' }));
     for (let n = 1; n <= items.length && day.scrollHeight > day.clientHeight; n++) {
       items[items.length - n].hidden = true;
@@ -714,6 +746,11 @@ function render() {
       ...(editing() ? [''] : [])].filter((h) => typed || h !== 'Type')
       .map((h) => $('th', { textContent: id === 'tests' && h === 'Due' ? 'Time' : h })))); // a test is held, not handed in
     table.parentElement.querySelector('.count').textContent = String(items.length).padStart(2, '0');
+    const late = items.filter(overdue).length;
+    const soon = items.filter(upcoming).length;
+    const lamp = table.parentElement.querySelector('.lamp'); // maroon: something overdue; amber: due soon; green: clear
+    lamp.className = `lamp ${late ? 'error' : soon ? 'login' : 'ok'}`;
+    tip(lamp, late ? `${late} overdue` : soon ? `${soon} due within ${UPCOMING_DAYS} days` : `Nothing due within ${UPCOMING_DAYS} days`);
     table.tBodies[0].replaceChildren(...items.map(toRow).map((tr) => { if (!typed) tr.children[1].remove(); return tr; }));
   }
   // An empty part is hidden; with nothing at all, the coursework part says so
@@ -727,8 +764,11 @@ function render() {
   // Course grades under the list: every course shown in the course buttons (AC29)
   document.querySelector('#grades tbody').replaceChildren(...courses.filter((c) => c !== '(no course)').map((c) => {
     const g = data.courses[c] || { grade: null, graded_pct: 0 };
-    const tr = $('tr', {}, ...[c, g.grade == null ? '—' : `${g.grade.toFixed(1)}%`, // AC83
-      `${(g.graded_pct || 0).toFixed(0)}%`].map((t) => $('td', { textContent: t })));
+    const pct = Math.max(0, Math.min(100, g.graded_pct || 0));
+    const gauge = $('span', { className: 'gauge' }); // segments lit for the share of the course already graded
+    gauge.style.setProperty('--fill', `${pct}%`);
+    const tr = $('tr', {}, ...[c, g.grade == null ? '—' : `${g.grade.toFixed(1)}%`].map((t) => $('td', { textContent: t })), // AC83
+      $('td', {}, gauge, `${pct.toFixed(0)}%`));
     tr.style.setProperty('--c', colorOf(c));
     return tr;
   }));
