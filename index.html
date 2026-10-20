@@ -197,33 +197,37 @@
     padding-top: 1rem; display: flex; flex-direction: column; gap: 1rem; }
   @media (max-width: 900px) { #layout { grid-template-columns: 1fr; } #filters { position: static; order: -1; max-height: none; } }
 
-  /* Filter tabs: dark recessed plates, LED on the right that lights when pressed */
-  .chips { display: grid; grid-template-columns: 1fr; gap: .3rem; } /* one vertical column per filter group */
+  /* Filter buttons live in the hologram, so they are projected light, not plates: a faint cyan wash framed by four corner
+     brackets, glowing cyan text, and a square marker (outline off, lit when selected) in place of an LED. Course identity
+     stays as light too: a triangle of horizontal lines at the right end and a line along the bottom in the course colour. */
+  .chips { display: grid; grid-template-columns: 1fr; gap: .35rem; } /* one vertical column per filter group */
   .chips > span { display: flex; }
   .chips > span > button:first-child { flex: 1; }
-  .chips button { position: relative; text-align: left; padding: .5rem 1.6rem .5rem 1.95rem; color: var(--label);
-    clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px); /* bigger cut than other buttons */
-    font: 600 .76rem 'Chakra Petch', sans-serif; letter-spacing: .05em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    border: 1px solid var(--recess-lo); background: linear-gradient(180deg, #3D3D3D, var(--recess) 60%, #2A2A2A);
-    box-shadow: inset 0 1px 0 var(--recess-hi); }
-  /* LED on the left; it alone shows the pressed state (no fill change) */
-  .chips button::after { content: ''; position: absolute; left: .4rem; top: 50%; width: 20px; height: 20px; margin-top: -10px;
-    background: var(--led-off); }
-  .chips button[aria-pressed=true] { color: var(--on-primary); }
-  .chips button[aria-pressed=true]::after { background: var(--led-on); filter: var(--glow); }
-  /* Stippled triangle at the right end, as on the reference tabs; course buttons stipple it in their colour */
+  .chips button { --wash: rgba(127, 230, 242, .06); --edge: var(--holo); position: relative; text-align: left;
+    padding: .5rem 1.7rem .5rem 1.85rem; clip-path: none; border: 0; box-shadow: none;
+    font: 600 .76rem 'Chakra Petch', sans-serif; letter-spacing: .06em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    color: var(--holo); text-shadow: 0 0 6px var(--holo-glow);
+    background:
+      linear-gradient(var(--edge), var(--edge)) left top / 8px 1px no-repeat, linear-gradient(var(--edge), var(--edge)) left top / 1px 8px no-repeat,
+      linear-gradient(var(--edge), var(--edge)) right top / 8px 1px no-repeat, linear-gradient(var(--edge), var(--edge)) right top / 1px 8px no-repeat,
+      linear-gradient(var(--edge), var(--edge)) left bottom / 8px 1px no-repeat, linear-gradient(var(--edge), var(--edge)) left bottom / 1px 8px no-repeat,
+      linear-gradient(var(--edge), var(--edge)) right bottom / 8px 1px no-repeat, linear-gradient(var(--edge), var(--edge)) right bottom / 1px 8px no-repeat,
+      var(--wash); }
+  .chips button:hover { --wash: rgba(127, 230, 242, .14); color: #DDFBFF; }
+  .chips button:active:not(:disabled) { transform: none; box-shadow: none; } /* light does not press in */
+  .chips button[aria-pressed=true] { --wash: rgba(127, 230, 242, .2); color: #EFFDFF; text-shadow: 0 0 8px var(--holo); }
+  .chips button::after { content: ''; position: absolute; left: .6rem; top: 50%; width: 10px; height: 10px; margin-top: -5px;
+    box-shadow: inset 0 0 0 1px var(--holo); } /* marker off: an outline */
+  .chips button[aria-pressed=true]::after { background: var(--holo); box-shadow: 0 0 6px var(--holo), 0 0 12px var(--holo-glow); }
   .chips button::before { content: ''; position: absolute; right: 0; top: 0; bottom: 0; width: 1.5rem; pointer-events: none;
-    background: repeating-linear-gradient(0deg, var(--label-dim) 0 1px, transparent 1px 3px); /* horizontal lines; grey unless a course */
+    background: repeating-linear-gradient(0deg, rgba(127, 230, 242, .55) 0 1px, transparent 1px 3px);
     clip-path: polygon(100% 0, 100% 100%, 0 100%); }
-  /* Course buttons: the triangle is filled with horizontal lines in the course colour, and a line of it runs along the bottom */
   .chips button.course::before { background: repeating-linear-gradient(0deg, var(--c) 0 1px, transparent 1px 3px); }
-  .chips button.course { box-shadow: inset 0 1px 0 var(--recess-hi), inset 0 -2px 0 var(--c); }
-  .chips button.eye::before { content: none; }
-  .chips button:hover { color: var(--on-primary); background: linear-gradient(180deg, #474747, #3A3A3A 60%, #2E2E2E); }
+  .chips button.course { border-bottom: 2px solid var(--c); } /* course line along the bottom */
+  .chips button.eye::before, .chips button.eye::after { content: none; }
   .chips .off { opacity: .5; }
   .chips button.eye, .chips button.eye:hover { background: none; color: var(--c); border: 0; box-shadow: none; clip-path: none;
-    padding: 0 .2rem; vertical-align: middle; }
-  .chips button.eye::after { content: none; }
+    padding: 0 .2rem; vertical-align: middle; text-shadow: none; }
 
   /* Tables */
   table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
@@ -296,7 +300,6 @@
     background: repeating-linear-gradient(0deg, rgba(127, 230, 242, .07) 0 1px, transparent 1px 3px), rgba(20, 70, 84, .55);
     box-shadow: 0 0 0 1px rgba(127, 230, 242, .25), 0 0 18px var(--holo-glow), inset 0 0 22px rgba(127, 230, 242, .18); }
   #holo h2 { margin: 0; font: .62rem var(--display); letter-spacing: .32em; text-transform: uppercase; text-shadow: 0 0 6px var(--holo-glow); }
-  #holo-close { align-self: flex-end; }
   #cal-nav button { padding: .35rem; line-height: 0; color: var(--label); border-color: var(--recess-lo);
     background: linear-gradient(180deg, #3D3D3D, var(--recess) 60%, #2A2A2A); box-shadow: inset 0 1px 0 var(--recess-hi); }
   #cal-nav button:hover { color: var(--led); }
@@ -462,7 +465,6 @@
     <h2 id="holo-title">Course filter</h2>
     <div id="courses" class="chips" role="group" aria-label="Course"></div>
     <div id="statuses" class="chips" role="group" aria-label="Status"></div>
-    <button id="holo-close">Close</button>
   </div>
 </div>
 <script>
@@ -993,7 +995,7 @@ document.addEventListener('scroll', hideTip, true);
 // Course filter hologram. Opening: one beam runs from the lens to the panel's centre; at the lens it splits into four whose
 // far ends run from the centre to the panel's four corners, and the panel is drawn by them: only the rectangle between
 // their ends shows, so it grows with them. The four beams stay on while the panel is open (redrawn on resize).
-// Reduced motion: straight to the open state. Closes on Esc, Close, or a click outside.
+// Reduced motion: straight to the open state. Closes on Esc or a click outside.
 const lens = document.getElementById('lens');
 const layer = document.getElementById('holo-layer');
 const holo = document.getElementById('holo');
@@ -1047,7 +1049,6 @@ function closeHolo() {
   lens.focus();
 }
 lens.addEventListener('click', openHolo);
-document.getElementById('holo-close').addEventListener('click', closeHolo);
 document.getElementById('holo-backdrop').addEventListener('click', closeHolo);
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !layer.hidden) closeHolo(); });
 load();
