@@ -157,7 +157,7 @@
   #tests-part::before, #labs-part::before, #work-part::before { content: ''; position: absolute; inset: 1px; z-index: -1;
     background: linear-gradient(180deg, #4E4E4E, #565656 30%, #5A5A5A);
     clip-path: polygon(40px 0, 100% 0, 100% calc(100% - 15.5px), calc(100% - 15.5px) 100%, 0 100%, 0 40px); }
-  #work-part { margin-top: 1rem; }
+  #layout.editing #work-part, #layout.editing #labs-part { margin-top: 1rem; } /* stacked in edit mode */
   .list-h .count { font: 600 .7rem 'Chakra Petch', sans-serif; letter-spacing: .1em; color: var(--label); padding: .05rem .35rem;
     background: #1E1E1E; box-shadow: inset 1px 1px 0 var(--recess-lo), inset -1px -1px 0 var(--recess-hi); }
   .list-h .lamp { margin-right: 0; }
@@ -241,13 +241,31 @@
   .items { table-layout: fixed; border-collapse: separate; border-spacing: 0; } /* separate borders: sticky titles paint cleanly in Firefox */
   .items td { overflow-wrap: anywhere; }
   /* Tests and Labs side by side (stacked in edit mode, or full width when the other is empty), with narrower columns */
+  /* Tests, Labs and Coursework as three equal columns (stacked full tables in edit mode, where inputs need the width).
+     In columns each item is a two-line row: done, course, title on top; due, time left, weight, mark (and type) below. */
   #pair { display: flex; gap: 1.5rem; align-items: flex-start; }
   #pair > div { flex: 1; min-width: 0; }
   #layout.editing #pair { display: block; }
-  #layout:not(.editing) #pair col.course { width: 7.5rem; } #layout:not(.editing) #pair col.due { width: 7rem; }
-  #layout:not(.editing) #pair col.left { width: 5rem; } #layout:not(.editing) #pair col.weight { width: 3.8rem; }
-  #layout:not(.editing) #pair col.mark { width: 4rem; }
-  #pair td { overflow-wrap: break-word; } /* break long words only when they cannot fit on a line of their own */
+  #layout:not(.editing) .items, #layout:not(.editing) .items tbody { display: block; }
+  #layout:not(.editing) .items thead, #layout:not(.editing) .items colgroup { display: none; }
+  #layout:not(.editing) .items tbody tr { display: grid; align-items: baseline; column-gap: .5rem; padding: .3rem .4rem;
+    grid-template-columns: 1em 8.3rem 4.6rem 3.6rem 4rem minmax(0, 1fr);
+    grid-template-areas: "done course title title title title" ".    due    left  weight mark type";
+    border-bottom: 1px solid var(--screen-line); }
+  #layout:not(.editing) .items tbody td { padding: 0; border: 0; min-width: 0; }
+  #layout:not(.editing) .items td.done { grid-area: done; padding: 0; }
+  #layout:not(.editing) .items td.course { grid-area: course; }
+  #layout:not(.editing) .items td.title { grid-area: title; overflow-wrap: break-word; }
+  #layout:not(.editing) .items td.due { grid-area: due; }
+  #layout:not(.editing) .items td.left { grid-area: left; }
+  #layout:not(.editing) .items td.weight { grid-area: weight; }
+  #layout:not(.editing) .items td.weight:not(:empty)::after { content: '%'; }
+  #layout:not(.editing) .items td.mark { grid-area: mark; }
+  #layout:not(.editing) .items td.type { grid-area: type; text-align: right; font-size: .8em; color: var(--screen-muted); }
+  #layout:not(.editing) .items td.left, #layout:not(.editing) .items td.weight, #layout:not(.editing) .items td.mark { color: var(--screen-muted); }
+  #layout:not(.editing) .items td.due, #layout:not(.editing) .items td.left, #layout:not(.editing) .items td.weight,
+  #layout:not(.editing) .items td.mark, #layout:not(.editing) .items td.type { padding-top: .15rem; font-size: .9em; }
+  #layout:not(.editing) .items tbody td.empty { grid-column: 1 / -1; grid-row: 1 / -1; }
   .items th:first-child, .items td:first-child { padding: 0 2px; text-align: center; }
   col.done { width: var(--tick, 1.2em); } /* checkmark width + 4px, measured at load */
   col.type { width: 6.5rem; } col.course { width: 8rem; } col.due { width: 9.5rem; } col.left { width: 7.5rem; }
@@ -421,10 +439,10 @@
     <h2 class="list-h"><span class="tab">Labs<span class="count"></span><span class="lamp"></span></span><span class="vent"></span></h2>
     <div class="bezel"><table id="labs" class="items"><colgroup></colgroup><thead></thead><tbody></tbody></table></div>
   </div>
-  </div>
   <div id="work-part">
     <h2 class="list-h"><span class="tab">Coursework<span class="count"></span><span class="lamp"></span></span><span class="vent"></span></h2>
     <div class="bezel"><table id="items" class="items"><colgroup></colgroup><thead></thead><tbody id="list"></tbody></table></div>
+  </div>
   </div>
   <div class="bezel fit"><table id="grades">
     <thead><tr><th>Course</th><th>Grade</th><th>Graded</th></tr></thead>
@@ -627,14 +645,14 @@ async function remove(item) {
   load();
 }
 
+const VIEW_CELLS = ['done', 'type', 'course', 'title', 'due', 'left', 'weight', 'mark']; // view-mode cells, by class
+
 function row(item) {
   if (!editing()) { // view mode: plain text, no controls
     const tr = $('tr', {}, ...[item.done ? '✓' : '', item.kind ?? '', courseOf(item),
       (item.title ?? '') + (item.missing ? ' (missing from source)' : ''),
       '', left(item), round2(item.weight), markText(item)]
-      .map((t) => $('td', { textContent: String(t) })));
-    tr.children[2].className = 'course';
-    tr.children[5].className = 'left'; // tick() finds it by class: the tests table drops the Type column
+      .map((t, k) => $('td', { className: VIEW_CELLS[k], textContent: String(t) }))); // tick() finds .left by class
     if (/^https?:\/\//i.test(item.url ?? '')) tr.children[3].replaceChildren(
       $('a', { href: item.url, target: '_blank', rel: 'noopener', textContent: item.title ?? '' }),
       item.missing ? ' (missing from source)' : '');
