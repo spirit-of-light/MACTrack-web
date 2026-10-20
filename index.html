@@ -995,7 +995,7 @@ document.addEventListener('scroll', hideTip, true);
 // Course filter hologram. Opening: one beam runs from the lens to the panel's centre; at the lens it splits into four whose
 // far ends run from the centre to the panel's four corners, and the panel is drawn by them: only the rectangle between
 // their ends shows, so it grows with them. The four beams stay on while the panel is open (redrawn on resize).
-// Reduced motion: straight to the open state. Closes on Esc or a click outside.
+// Reduced motion: straight to the open state. Closes on Esc or a click outside, with the opening played backwards.
 const lens = document.getElementById('lens');
 const layer = document.getElementById('holo-layer');
 const holo = document.getElementById('holo');
@@ -1003,9 +1003,9 @@ const beams = document.getElementById('beams');
 const beam = () => beams.appendChild(document.createElementNS('http://www.w3.org/2000/svg', 'line'));
 const at = (line, [x1, y1], [x2, y2]) => { line.setAttribute('x1', x1); line.setAttribute('y1', y1); line.setAttribute('x2', x2); line.setAttribute('y2', y2); };
 const ease = (t) => 1 - (1 - t) ** 3;
-const run = (ms, step) => new Promise((done) => { // step(t) for t from 0 to 1 over ms, one frame at a time
+const run = (ms, step, back = false) => new Promise((done) => { // step(t) for t from 0 to 1 over ms; back plays it in reverse
   const t0 = performance.now();
-  const frame = (now) => { const t = Math.min(1, (now - t0) / ms); step(ease(t)); t < 1 ? requestAnimationFrame(frame) : done(); };
+  const frame = (now) => { const t = Math.min(1, (now - t0) / ms); step(ease(back ? 1 - t : t)); t < 1 ? requestAnimationFrame(frame) : done(); };
   requestAnimationFrame(frame);
 });
 const mix = ([ax, ay], [bx, by], t) => [ax + (bx - ax) * t, ay + (by - ay) * t];
@@ -1021,7 +1021,10 @@ function holdBeams() { // re-aim the four beams at the corners (after opening, a
   const { from, corners } = geometry();
   four.forEach((b, k) => at(b, from, corners[k]));
 }
+let busy = false; // an opening or closing sequence is running
 async function openHolo() {
+  if (busy || !layer.hidden) return;
+  busy = true;
   layer.hidden = false;
   lens.setAttribute('aria-expanded', 'true');
   beams.replaceChildren();
@@ -1038,11 +1041,24 @@ async function openHolo() {
   }
   reveal(1);
   holdBeams();
+  busy = false;
   holo.querySelector('button')?.focus();
 }
 window.addEventListener('resize', () => { if (!layer.hidden) holdBeams(); });
-function closeHolo() {
+// Closing is the opening played backwards: the four beam ends run from the corners back to the centre while the panel
+// shrinks between them, they merge into one beam at the centre, and that beam retracts into the lens.
+async function closeHolo() {
+  if (busy || layer.hidden) return;
+  busy = true;
+  if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    const { from, centre, corners } = geometry();
+    await run(420, (t) => { four.forEach((b, k) => at(b, from, mix(centre, corners[k], t))); reveal(t); }, true);
+    beams.replaceChildren();
+    const main = beam();
+    await run(260, (t) => at(main, from, mix(from, centre, t)), true);
+  }
   layer.hidden = true;
+  busy = false;
   beams.replaceChildren();
   four = [];
   lens.setAttribute('aria-expanded', 'false');
