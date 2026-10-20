@@ -242,30 +242,36 @@
   .items td { overflow-wrap: anywhere; }
   /* Tests and Labs side by side (stacked in edit mode, or full width when the other is empty), with narrower columns */
   /* Tests, Labs and Coursework as three equal columns (stacked full tables in edit mode, where inputs need the width).
-     In columns each item is a two-line row: done, course, title on top; due, time left, weight, mark (and type) below. */
+     In columns each open item is a two-line row: course and title on top; due, time left, weight (and type) below.
+     Done items sit in a second table under it in the same panel: ✓ | Course | Title | Weight | Grade. */
   #pair { display: flex; gap: 1.5rem; align-items: flex-start; }
   #pair > div { flex: 1; min-width: 0; }
   #layout.editing #pair { display: block; }
-  #layout:not(.editing) .items, #layout:not(.editing) .items tbody { display: block; }
-  #layout:not(.editing) .items thead, #layout:not(.editing) .items colgroup { display: none; }
-  #layout:not(.editing) .items tbody tr { display: grid; align-items: baseline; column-gap: .5rem; padding: .3rem .4rem;
-    grid-template-columns: 1em 8.3rem 4.6rem 3.6rem 4rem minmax(0, 1fr);
-    grid-template-areas: "done course title title title title" ".    due    left  weight mark type";
+  #layout:not(.editing) .items:not(.done-list), #layout:not(.editing) .items:not(.done-list) tbody { display: block; }
+  #layout:not(.editing) .items:not(.done-list) thead, #layout:not(.editing) .items:not(.done-list) colgroup { display: none; }
+  #layout:not(.editing) .items:not(.done-list) tbody tr { display: grid; align-items: baseline; column-gap: .5rem; padding: .3rem .4rem;
+    grid-template-columns: 8.3rem 4.6rem 3.6rem minmax(0, 1fr);
+    grid-template-areas: "course title title title" "due left weight type";
     border-bottom: 1px solid var(--screen-line); }
-  #layout:not(.editing) .items tbody td { padding: 0; border: 0; min-width: 0; }
-  #layout:not(.editing) .items td.done { grid-area: done; padding: 0; }
-  #layout:not(.editing) .items td.course { grid-area: course; }
-  #layout:not(.editing) .items td.title { grid-area: title; overflow-wrap: break-word; }
-  #layout:not(.editing) .items td.due { grid-area: due; }
-  #layout:not(.editing) .items td.left { grid-area: left; }
-  #layout:not(.editing) .items td.weight { grid-area: weight; }
-  #layout:not(.editing) .items td.weight:not(:empty)::after { content: '%'; }
-  #layout:not(.editing) .items td.mark { grid-area: mark; }
-  #layout:not(.editing) .items td.type { grid-area: type; text-align: right; font-size: .8em; color: var(--screen-muted); }
-  #layout:not(.editing) .items td.left, #layout:not(.editing) .items td.weight, #layout:not(.editing) .items td.mark { color: var(--screen-muted); }
-  #layout:not(.editing) .items td.due, #layout:not(.editing) .items td.left, #layout:not(.editing) .items td.weight,
-  #layout:not(.editing) .items td.mark, #layout:not(.editing) .items td.type { padding-top: .15rem; font-size: .9em; }
+  #layout:not(.editing) .items:not(.done-list) tbody td { padding: 0; border: 0; min-width: 0; }
+  #layout:not(.editing) .items:not(.done-list) td.done, #layout:not(.editing) .items:not(.done-list) td.mark { display: none; }
+  #layout:not(.editing) .items:not(.done-list) td.course { grid-area: course; }
+  #layout:not(.editing) .items:not(.done-list) td.title { grid-area: title; overflow-wrap: break-word; }
+  #layout:not(.editing) .items:not(.done-list) td.due { grid-area: due; }
+  #layout:not(.editing) .items:not(.done-list) td.left { grid-area: left; }
+  #layout:not(.editing) .items:not(.done-list) td.weight { grid-area: weight; }
+  #layout:not(.editing) .items:not(.done-list) td.weight:not(:empty)::after { content: '%'; }
+  #layout:not(.editing) .items:not(.done-list) td.type { grid-area: type; text-align: right; font-size: .8em; color: var(--screen-muted); }
+  #layout:not(.editing) .items:not(.done-list) td.left, #layout:not(.editing) .items:not(.done-list) td.weight, #layout:not(.editing) .items:not(.done-list) td.mark { color: var(--screen-muted); }
+  #layout:not(.editing) .items:not(.done-list) td.due, #layout:not(.editing) .items:not(.done-list) td.left, #layout:not(.editing) .items:not(.done-list) td.weight,
+  #layout:not(.editing) .items:not(.done-list) td.mark, #layout:not(.editing) .items:not(.done-list) td.type { padding-top: .15rem; font-size: .9em; }
   #layout:not(.editing) .items tbody td.empty { grid-column: 1 / -1; grid-row: 1 / -1; }
+  .done-screen { margin-top: 7px; }
+  #layout.editing .done-screen { display: none; } /* edit mode keeps every item in the main tables */
+  .done-list col.course { width: 7.6rem; } .done-list col.weight { width: 4.2rem; } .done-list col.grade { width: 4.6rem; }
+  .done-list td { color: var(--screen-muted); } /* finished work recedes */
+  .done-list td.course { color: var(--c); }
+  .done-list td.grade { color: var(--screen-text); }
   .items th:first-child, .items td:first-child { padding: 0 2px; text-align: center; }
   col.done { width: var(--tick, 1.2em); } /* checkmark width + 4px, measured at load */
   col.type { width: 6.5rem; } col.course { width: 8rem; } col.due { width: 9.5rem; } col.left { width: 7.5rem; }
@@ -435,14 +441,17 @@
   <div id="tests-part">
     <h2 class="list-h"><span class="tab">Tests<span class="count"></span><span class="lamp"></span></span><span class="vent"></span></h2>
     <div class="bezel"><table id="tests" class="items"><colgroup></colgroup><thead></thead><tbody></tbody></table></div>
+    <div class="bezel done-screen"><table id="tests-done" class="items done-list"><colgroup></colgroup><thead></thead><tbody></tbody></table></div>
   </div>
   <div id="labs-part">
     <h2 class="list-h"><span class="tab">Labs<span class="count"></span><span class="lamp"></span></span><span class="vent"></span></h2>
     <div class="bezel"><table id="labs" class="items"><colgroup></colgroup><thead></thead><tbody></tbody></table></div>
+    <div class="bezel done-screen"><table id="labs-done" class="items done-list"><colgroup></colgroup><thead></thead><tbody></tbody></table></div>
   </div>
   <div id="work-part">
     <h2 class="list-h"><span class="tab">Coursework<span class="count"></span><span class="lamp"></span></span><span class="vent"></span></h2>
     <div class="bezel"><table id="items" class="items"><colgroup></colgroup><thead></thead><tbody id="list"></tbody></table></div>
+    <div class="bezel done-screen"><table id="items-done" class="items done-list"><colgroup></colgroup><thead></thead><tbody></tbody></table></div>
   </div>
   </div>
   <div class="bezel fit"><table id="grades">
@@ -647,6 +656,22 @@ async function remove(item) {
 }
 
 const VIEW_CELLS = ['done', 'type', 'course', 'title', 'due', 'left', 'weight', 'mark']; // view-mode cells, by class
+const titleCell = (item) => { // title, linked to the item's page when it has an http(s) url
+  const td = $('td', { className: 'title', textContent: (item.title ?? '') + (item.missing ? ' (missing from source)' : '') });
+  if (/^https?:\/\//i.test(item.url ?? '')) td.replaceChildren(
+    $('a', { href: item.url, target: '_blank', rel: 'noopener', textContent: item.title ?? '' }), item.missing ? ' (missing from source)' : '');
+  return td;
+};
+// Grade of a done item: mark as a percentage of out of (raw mark in the tooltip); the raw mark when there is no out of.
+const gradeText = (i) => (i.mark == null ? '' : i.out_of ? `${Math.round((i.mark / i.out_of) * 1000) / 10}%` : String(round2(i.mark)));
+function doneRow(item) { // view mode, done table: ✓ | Course | Title | Weight | Grade
+  const grade = $('td', { className: 'grade', textContent: gradeText(item) });
+  if (item.mark != null && item.out_of) tip(grade, markText(item));
+  const tr = $('tr', {}, $('td', { className: 'done', textContent: '✓' }), $('td', { className: 'course', textContent: courseOf(item) }),
+    titleCell(item), $('td', { className: 'weight', textContent: item.weight == null ? '' : `${round2(item.weight)}%` }), grade);
+  tr.classList.toggle('missing', !!item.missing);
+  return tr;
+}
 
 function row(item) {
   if (!editing()) { // view mode: plain text, no controls
@@ -654,9 +679,7 @@ function row(item) {
       (item.title ?? '') + (item.missing ? ' (missing from source)' : ''),
       '', left(item), round2(item.weight), markText(item)]
       .map((t, k) => $('td', { className: VIEW_CELLS[k], textContent: String(t) }))); // tick() finds .left by class
-    if (/^https?:\/\//i.test(item.url ?? '')) tr.children[3].replaceChildren(
-      $('a', { href: item.url, target: '_blank', rel: 'noopener', textContent: item.title ?? '' }),
-      item.missing ? ' (missing from source)' : '');
+    tr.children[3].replaceWith(titleCell(item));
     if (item.due) {
       tr.children[4].replaceChildren(dateTime(item.due));
     }
@@ -868,8 +891,7 @@ function render() {
   const cols = ['done', 'type', 'course', 'title', 'due', 'left', 'weight', 'mark', ...(editing() ? ['actions'] : [])];
   document.getElementById('layout').classList.toggle('editing', editing());
   const done = () => { const th = tip($('th', { textContent: '✓' }), 'Done'); th.setAttribute('aria-label', 'Done'); return th; };
-  const toRow = (i) => {
-    const tr = row(i);
+  const toRow = (i, tr = row(i)) => { // decorate a row: course colour, hover links to the calendar and the Next boxes
     tr.item = i; // for tick()
     tr.style.setProperty('--c', colorOf(courseOf(i)));
     tr.classList.toggle('off', hidden.includes(courseOf(i)));
@@ -906,7 +928,16 @@ function render() {
     const lamp = table.closest('[id$="-part"]').querySelector('.lamp'); // maroon: something overdue; amber: due soon; green: clear
     lamp.className = `lamp ${late ? 'error' : soon ? 'login' : 'ok'}`;
     tip(lamp, late ? `${late} overdue` : soon ? `${soon} due within ${UPCOMING_DAYS} days` : `Nothing due within ${UPCOMING_DAYS} days`);
-    table.tBodies[0].replaceChildren(...items.map(toRow).map((tr) => { if (!typed) tr.children[1].remove(); return tr; }));
+    // view mode: open items here, done ones in the panel's second table; edit mode: everything here
+    const open = editing() ? items : items.filter((i) => !i.done);
+    const finished = editing() ? [] : items.filter((i) => i.done);
+    table.tBodies[0].replaceChildren(...open.map((i) => toRow(i)).map((tr) => { if (!typed) tr.children[1].remove(); return tr; }));
+    table.closest('.bezel').hidden = !open.length && !!items.length;
+    const doneTable = document.getElementById(`${id}-done`);
+    doneTable.closest('.bezel').hidden = !finished.length;
+    doneTable.querySelector('colgroup').replaceChildren(...['done', 'course', 'title', 'weight', 'grade'].map((c) => $('col', { className: c })));
+    doneTable.querySelector('thead').replaceChildren($('tr', {}, done(), ...['Course', 'Title', 'Weight', 'Grade'].map((h) => $('th', { textContent: h }))));
+    doneTable.tBodies[0].replaceChildren(...finished.map((i) => toRow(i, doneRow(i))));
   }
   // An empty part is hidden; with nothing at all, the coursework part says so
   document.getElementById('tests-part').hidden = !parts[0][1].length;
