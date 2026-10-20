@@ -292,10 +292,9 @@
   #beams line { stroke: var(--holo); stroke-width: 2; stroke-linecap: round; }
   #holo { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 16rem; max-height: 80vh; overflow-y: auto;
     box-sizing: border-box; padding: 1rem 1.1rem 1.1rem; display: flex; flex-direction: column; gap: .8rem;
-    color: var(--holo); border: 1px solid var(--holo); opacity: 0;
+    color: var(--holo); border: 1px solid var(--holo);
     background: repeating-linear-gradient(0deg, rgba(127, 230, 242, .07) 0 1px, transparent 1px 3px), rgba(20, 70, 84, .55);
     box-shadow: 0 0 0 1px rgba(127, 230, 242, .25), 0 0 18px var(--holo-glow), inset 0 0 22px rgba(127, 230, 242, .18); }
-  #holo.on { opacity: 1; transition: opacity .15s; } /* the panel forms once the beams reach its corners */
   #holo h2 { margin: 0; font: .62rem var(--display); letter-spacing: .32em; text-transform: uppercase; text-shadow: 0 0 6px var(--holo-glow); }
   #holo-close { align-self: flex-end; }
   #cal-nav button { padding: .35rem; line-height: 0; color: var(--label); border-color: var(--recess-lo);
@@ -991,8 +990,10 @@ document.addEventListener('mouseover', (e) => {
 });
 document.documentElement.addEventListener('mouseleave', hideTip);
 document.addEventListener('scroll', hideTip, true);
-// Course filter hologram. Opening: one beam runs from the lens to the panel's centre, splits into four that run to the
-// panel's corners, then the panel forms. Reduced motion: the panel just appears. Closes on Esc, Close, or a click outside.
+// Course filter hologram. Opening: one beam runs from the lens to the panel's centre; at the lens it splits into four whose
+// far ends run from the centre to the panel's four corners, and the panel is drawn by them: only the rectangle between
+// their ends shows, so it grows with them. The four beams stay on while the panel is open (redrawn on resize).
+// Reduced motion: straight to the open state. Closes on Esc, Close, or a click outside.
 const lens = document.getElementById('lens');
 const layer = document.getElementById('holo-layer');
 const holo = document.getElementById('holo');
@@ -1006,29 +1007,42 @@ const run = (ms, step) => new Promise((done) => { // step(t) for t from 0 to 1 o
   requestAnimationFrame(frame);
 });
 const mix = ([ax, ay], [bx, by], t) => [ax + (bx - ax) * t, ay + (by - ay) * t];
-async function openHolo() {
-  layer.hidden = false;
-  holo.classList.remove('on');
-  lens.setAttribute('aria-expanded', 'true');
-  beams.replaceChildren();
+const geometry = () => { // lens centre, panel centre and corners, in viewport pixels
   const l = lens.getBoundingClientRect();
   const r = holo.getBoundingClientRect();
-  const from = [l.left + l.width / 2, l.top + l.height / 2];
-  const centre = [r.left + r.width / 2, r.top + r.height / 2];
-  const corners = [[r.left, r.top], [r.right, r.top], [r.right, r.bottom], [r.left, r.bottom]];
+  return { from: [l.left + l.width / 2, l.top + l.height / 2], centre: [r.left + r.width / 2, r.top + r.height / 2],
+    corners: [[r.left, r.top], [r.right, r.top], [r.right, r.bottom], [r.left, r.bottom]] };
+};
+const reveal = (t) => { holo.style.clipPath = t >= 1 ? 'none' : `inset(${(1 - t) * 50}%)`; }; // the rectangle between the beam ends
+let four = []; // the beams that hold the open panel
+function holdBeams() { // re-aim the four beams at the corners (after opening, and on resize)
+  const { from, corners } = geometry();
+  four.forEach((b, k) => at(b, from, corners[k]));
+}
+async function openHolo() {
+  layer.hidden = false;
+  lens.setAttribute('aria-expanded', 'true');
+  beams.replaceChildren();
+  reveal(0);
+  const { from, centre, corners } = geometry();
   if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
     const main = beam();
     await run(260, (t) => at(main, from, mix(from, centre, t)));
-    const four = corners.map(() => beam());
-    await run(300, (t) => four.forEach((b, k) => at(b, centre, mix(centre, corners[k], t))));
+    main.remove();
+    four = corners.map(() => beam()); // the split happens at the lens: all four start there
+    await run(420, (t) => { four.forEach((b, k) => at(b, from, mix(centre, corners[k], t))); reveal(t); });
+  } else {
+    four = corners.map(() => beam());
   }
-  holo.classList.add('on');
-  setTimeout(() => beams.replaceChildren(), 180);
+  reveal(1);
+  holdBeams();
   holo.querySelector('button')?.focus();
 }
+window.addEventListener('resize', () => { if (!layer.hidden) holdBeams(); });
 function closeHolo() {
   layer.hidden = true;
   beams.replaceChildren();
+  four = [];
   lens.setAttribute('aria-expanded', 'false');
   lens.focus();
 }
