@@ -249,7 +249,7 @@
   #layout:not(.editing) .items:not(.done-list) td:first-child, #layout:not(.editing) .items:not(.done-list) th:first-child {
     padding: .2rem .35rem; text-align: left; } /* first column is Course here, not ✓ */
   #layout:not(.editing) .items:not(.done-list) col.course { width: 7.4rem; }
-  #layout:not(.editing) .items:not(.done-list) col.due { width: 7.2rem; }
+  #layout:not(.editing) .items:not(.done-list) col.due { width: 4.6rem; } /* date only, e.g. 20 Oct */
   #layout:not(.editing) .items:not(.done-list) col.left { width: 4.8rem; }
   #layout:not(.editing) .items:not(.done-list) col.weight { width: 3.6rem; }
   #layout:not(.editing) .items:not(.done-list) td.weight:not(:empty)::after { content: '%'; }
@@ -675,7 +675,7 @@ function row(item) {
       .map((t, k) => $('td', { className: VIEW_CELLS[k], textContent: String(t) }))); // tick() finds .left by class
     tr.children[3].replaceWith(titleCell(item));
     if (item.due) {
-      tr.children[4].replaceChildren(dateTime(item.due));
+      tr.children[4].textContent = dueText(item.due)[0]; // date only: the time is in the Next / Selected boxes
     }
     tr.classList.toggle('overdue', overdue(item));
     tr.classList.toggle('upcoming', upcoming(item));
@@ -908,7 +908,7 @@ function render() {
     const typed = id === 'items' || editing(); // edit mode shows Type everywhere so a test or lab can be re-typed
     const table = document.getElementById(id);
     table.classList.toggle('editing', editing());
-    const dueHead = id === 'tests' ? 'Time' : 'Due'; // a test is held, not handed in
+    const dueHead = id === 'tests' ? 'Date' : 'Due'; // a test is held on a date, not handed in
     if (editing()) {
       table.querySelector('colgroup').replaceChildren(...cols.filter((c) => typed || c !== 'type').map((c) => $('col', { className: c })));
       table.querySelector('thead').replaceChildren($('tr', {}, done(), ...['Type', 'Course', 'Title', dueHead, 'Time left', 'Weight', 'Mark', '']
