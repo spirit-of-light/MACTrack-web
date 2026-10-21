@@ -80,7 +80,6 @@
   .bezel > * { --ch: 7.9px; }
   .bezel.fit { width: fit-content; }
   .bezel.grow { flex: 1; min-width: 0; }
-  #top > .bezel:first-child { flex: none; }
 
   /* Buttons: glossy maroon plates with a bevel; small wide-tracked caps */
   button { font: .62rem var(--display); letter-spacing: .14em; text-transform: uppercase; cursor: pointer;
@@ -157,7 +156,6 @@
   #tests-part::before, #labs-part::before, #work-part::before { content: ''; position: absolute; inset: 1px; z-index: -1;
     background: linear-gradient(180deg, #4E4E4E, #565656 30%, #5A5A5A);
     clip-path: polygon(40px 0, 100% 0, 100% calc(100% - 15.5px), calc(100% - 15.5px) 100%, 0 100%, 0 40px); }
-  #layout.editing #work-part, #layout.editing #labs-part { margin-top: 1rem; } /* stacked in edit mode */
   .list-h .count { font: 600 .7rem 'Chakra Petch', sans-serif; letter-spacing: .1em; color: var(--label); padding: .05rem .35rem;
     background: #1E1E1E; box-shadow: inset 1px 1px 0 var(--recess-lo), inset -1px -1px 0 var(--recess-hi); }
   .list-h .lamp { margin-right: 0; }
@@ -242,30 +240,20 @@
   .items td { overflow-wrap: anywhere; }
   /* Tests and Labs side by side (stacked in edit mode, or full width when the other is empty), with narrower columns */
   /* Tests, Labs and Coursework as three equal columns (stacked full tables in edit mode, where inputs need the width).
-     In columns each open item is a two-line row: course and title on top; due, time left, weight (and type) below.
-     Done items sit in a second table under it in the same panel: ✓ | Course | Title | Weight | Grade. */
+     In view mode the open table is one line per item: Course | Title | Due | Time left | Weight (no ✓, type or mark);
+     done items sit in a second table under it in the same panel: ✓ | Course | Title | Weight | Grade. */
   #pair { display: flex; gap: 1.5rem; align-items: flex-start; }
   #pair > div { flex: 1; min-width: 0; }
   #layout.editing #pair { display: block; }
-  #layout:not(.editing) .items:not(.done-list), #layout:not(.editing) .items:not(.done-list) tbody { display: block; }
-  #layout:not(.editing) .items:not(.done-list) thead, #layout:not(.editing) .items:not(.done-list) colgroup { display: none; }
-  #layout:not(.editing) .items:not(.done-list) tbody tr { display: grid; align-items: baseline; column-gap: .5rem; padding: .3rem .4rem;
-    grid-template-columns: 8.3rem 4.6rem 3.6rem minmax(0, 1fr);
-    grid-template-areas: "course title title title" "due left weight type";
-    border-bottom: 1px solid var(--screen-line); }
-  #layout:not(.editing) .items:not(.done-list) tbody td { padding: 0; border: 0; min-width: 0; }
-  #layout:not(.editing) .items:not(.done-list) td.done, #layout:not(.editing) .items:not(.done-list) td.mark { display: none; }
-  #layout:not(.editing) .items:not(.done-list) td.course { grid-area: course; }
-  #layout:not(.editing) .items:not(.done-list) td.title { grid-area: title; overflow-wrap: break-word; }
-  #layout:not(.editing) .items:not(.done-list) td.due { grid-area: due; }
-  #layout:not(.editing) .items:not(.done-list) td.left { grid-area: left; }
-  #layout:not(.editing) .items:not(.done-list) td.weight { grid-area: weight; }
+  #layout.editing #work-part, #layout.editing #labs-part { margin-top: 1rem; } /* stacked in edit mode */
+  #layout:not(.editing) .items:not(.done-list) td:first-child, #layout:not(.editing) .items:not(.done-list) th:first-child {
+    padding: .2rem .35rem; text-align: left; } /* first column is Course here, not ✓ */
+  #layout:not(.editing) .items:not(.done-list) col.course { width: 7.4rem; }
+  #layout:not(.editing) .items:not(.done-list) col.due { width: 7.2rem; }
+  #layout:not(.editing) .items:not(.done-list) col.left { width: 4.8rem; }
+  #layout:not(.editing) .items:not(.done-list) col.weight { width: 3.6rem; }
   #layout:not(.editing) .items:not(.done-list) td.weight:not(:empty)::after { content: '%'; }
-  #layout:not(.editing) .items:not(.done-list) td.type { grid-area: type; text-align: right; font-size: .8em; color: var(--screen-muted); }
-  #layout:not(.editing) .items:not(.done-list) td.left, #layout:not(.editing) .items:not(.done-list) td.weight, #layout:not(.editing) .items:not(.done-list) td.mark { color: var(--screen-muted); }
-  #layout:not(.editing) .items:not(.done-list) td.due, #layout:not(.editing) .items:not(.done-list) td.left, #layout:not(.editing) .items:not(.done-list) td.weight,
-  #layout:not(.editing) .items:not(.done-list) td.mark, #layout:not(.editing) .items:not(.done-list) td.type { padding-top: .15rem; font-size: .9em; }
-  #layout:not(.editing) .items tbody td.empty { grid-column: 1 / -1; grid-row: 1 / -1; }
+  #pair td { overflow-wrap: break-word; } /* break long words only when they cannot fit on a line of their own */
   .done-screen { margin-top: 7px; }
   #layout.editing .done-screen { display: none; } /* edit mode keeps every item in the main tables */
   .done-list col.course { width: 7.6rem; } .done-list col.weight { width: 4.2rem; } .done-list col.grade { width: 4.6rem; }
@@ -292,10 +280,14 @@
   .info { color: var(--label); margin: .4rem 0; }
 
   /* Calendar arrows: small recessed keys */
-  #cal-nav { display: flex; flex-direction: column; gap: .3rem; align-self: stretch; } /* up: back a week, circle: today, down: forward a week */
-  /* Holographic projector lens at the foot of the arrow column, its bottom level with the calendar casing's. Masked to a
+  /* Calendar navigation: a tab on the calendar casing's top-right edge, attached like the section title tabs (same .tab
+     plate, flush with the casing's right side). Lens, then back a week, today, forward a week. */
+  #cal-part { flex: none; }
+  .cal-head { --th: 40px; justify-content: flex-end; padding-left: 0; }
+  #cal-nav.tab { gap: .4rem; padding-right: .45rem; }
+  /* Holographic projector lens, first in the calendar navigation tab. Masked to a
      circle by a CSS mask (no rounded corners): glint, emitter glow, metal mount ring, iridescent glass. */
-  #cal-nav #lens { margin-top: auto; width: 46px; height: 46px; padding: 0; border: 0; box-shadow: none; clip-path: none;
+  #cal-nav #lens { margin-right: .25rem; width: 30px; height: 30px; padding: 0; border: 0; box-shadow: none; clip-path: none;
     -webkit-mask: radial-gradient(circle closest-side, #000 97%, transparent 100%); mask: radial-gradient(circle closest-side, #000 97%, transparent 100%);
     background:
       radial-gradient(circle closest-side at 37% 33%, rgba(255, 255, 255, .85) 0 7%, rgba(255, 255, 255, 0) 20%),
@@ -358,7 +350,7 @@
   .day .more { font: .55rem var(--display); letter-spacing: .1em; color: var(--led-text); }
 
   /* Top bar: the calendar, its arrows, then the Next test and Next lab readouts */
-  #top { display: flex; gap: .8rem; align-items: flex-start; } /* Next blocks keep their own height */
+  #top { display: flex; gap: .8rem; align-items: flex-end; } /* bottoms line up: the calendar's nav tab sits above it */
   /* Nameplate strip at the top of the sticky bar: badge, vent grille, a status LED per website, last sync */
   #plate { display: flex; align-items: center; gap: 1rem; padding: .7rem 0 .6rem; }
   #brand { display: flex; align-items: center; gap: .6rem; }
@@ -369,13 +361,11 @@
   .vent { flex: 1; min-width: 3rem; height: 14px;
     background: repeating-linear-gradient(90deg, var(--recess-lo) 0 2px, var(--chassis-hi) 2px 3px, transparent 3px 6px);
     box-shadow: inset 0 1px 0 var(--chassis-lo), 0 1px 0 var(--chassis-hi); }
-  #links { display: flex; gap: 1rem; font: 600 .66rem 'Chakra Petch', sans-serif; letter-spacing: .14em; text-transform: uppercase; color: var(--label); }
   /* Status lamps: green ok, amber attention, maroon problem. Used by the nameplate, section headings and the sync table. */
-  #links span::after, .lamp { content: ''; display: inline-block; width: 14px; height: 14px; vertical-align: -3px; background: var(--led-off); }
-  #links span::after { margin-left: .3rem; }
-  #links .ok::after, .lamp.ok { background: var(--led-on-ok); filter: var(--glow-ok); }
-  #links .login::after, .lamp.login { background: var(--led-on-amber); filter: var(--glow-amber); }
-  #links .error::after, .lamp.error { background: var(--led-on); filter: var(--glow); }
+  .lamp { content: ''; display: inline-block; width: 14px; height: 14px; vertical-align: -3px; background: var(--led-off); }
+  .lamp.ok { background: var(--led-on-ok); filter: var(--glow-ok); }
+  .lamp.login { background: var(--led-on-amber); filter: var(--glow-amber); }
+  .lamp.error { background: var(--led-on); filter: var(--glow); }
   .lamp { margin-right: .35rem; }
   #synced, #host, #tally { font: .52rem var(--display); letter-spacing: .14em; text-transform: uppercase; color: var(--label); padding: .35rem .55rem;
     background: var(--recess); box-shadow: inset 1px 1px 0 var(--recess-lo), inset -1px -1px 0 var(--recess-hi); white-space: nowrap; }
@@ -418,18 +408,21 @@
   <div id="plate">
     <div id="brand"><span id="mark"></span><div><b>MACTRACK</b><small>Coursework tracker</small></div></div>
     <div class="vent"></div>
-    <div id="links" role="group" aria-label="Sync status"></div>
     <div id="tally"></div>
     <div id="synced"></div>
   </div>
   <div id="top">
-    <div class="bezel"><div id="calendar"></div></div>
-    <nav id="cal-nav">
-      <button id="cal-back" aria-label="Previous week" data-tip="Previous week" data-tip-delay="1000"></button>
-      <button id="cal-today" aria-label="Back to today" data-tip="Back to today" data-tip-delay="1000"></button>
-      <button id="cal-fwd" aria-label="Next week" data-tip="Next week" data-tip-delay="1000"></button>
-      <button id="lens" aria-label="Course filter" aria-haspopup="dialog" aria-expanded="false" data-tip="Course filter"></button>
-    </nav>
+    <div id="cal-part">
+      <div class="list-h cal-head">
+        <nav id="cal-nav" class="tab">
+          <button id="lens" aria-label="Course filter" aria-haspopup="dialog" aria-expanded="false" data-tip="Course filter"></button>
+          <button id="cal-back" aria-label="Previous week" data-tip="Previous week" data-tip-delay="1000"></button>
+          <button id="cal-today" aria-label="Back to today" data-tip="Back to today" data-tip-delay="1000"></button>
+          <button id="cal-fwd" aria-label="Next week" data-tip="Next week" data-tip-delay="1000"></button>
+        </nav>
+      </div>
+      <div class="bezel"><div id="calendar"></div></div>
+    </div>
     <div class="bezel grow"><div id="next-test" class="next" role="region" aria-label="Next test"></div></div>
     <div class="bezel grow"><div id="next-lab" class="next" role="region" aria-label="Next lab"></div></div>
   </div>
@@ -656,6 +649,7 @@ async function remove(item) {
 }
 
 const VIEW_CELLS = ['done', 'type', 'course', 'title', 'due', 'left', 'weight', 'mark']; // view-mode cells, by class
+const VIEW_OPEN = ['course', 'title', 'due', 'left', 'weight']; // the cells an open item shows in view mode
 const titleCell = (item) => { // title, linked to the item's page when it has an http(s) url
   const td = $('td', { className: 'title', textContent: (item.title ?? '') + (item.missing ? ' (missing from source)' : '') });
   if (/^https?:\/\//i.test(item.url ?? '')) td.replaceChildren(
@@ -782,10 +776,6 @@ function render() {
   saveState();
   // Mode switch: pencil + Edit in view mode, page + View in edit mode
   document.getElementById('edit').replaceChildren(icon(...(editing() ? MONITOR : PENCIL)), editing() ? 'View' : 'Edit');
-  // Nameplate: one LED per website (green ok, amber needs sign-in, maroon error), and the latest sync time
-  document.getElementById('links').replaceChildren(...Object.entries(status).map(([src, s]) => tip($('span', {
-    className: { ok: 'ok', 'login needed': 'login', error: 'error' }[s.status] ?? '',
-    textContent: src[0].toUpperCase() + src.slice(1) }), `${src[0].toUpperCase() + src.slice(1)}: ${s.status}`)));
   // Tally: courses shown in the buttons, and items still open in them (filled in once the course list is known, below)
   const lastSync = Object.values(status).map((s) => s.synced_at).filter(Boolean).sort().pop();
   document.getElementById('synced').textContent = lastSync ? `Synced ${dueText(lastSync).join(' ')}` : 'Not synced yet';
@@ -918,11 +908,17 @@ function render() {
     const typed = id === 'items' || editing(); // edit mode shows Type everywhere so a test or lab can be re-typed
     const table = document.getElementById(id);
     table.classList.toggle('editing', editing());
-    table.querySelector('colgroup').replaceChildren(...cols.filter((c) => typed || c !== 'type').map((c) => $('col', { className: c })));
-    table.querySelector('thead').replaceChildren($('tr', {}, done(), ...['Type', 'Course', 'Title', 'Due', 'Time left', 'Weight', 'Mark',
-      ...(editing() ? [''] : [])].filter((h) => typed || h !== 'Type')
-      .map((h) => $('th', { textContent: id === 'tests' && h === 'Due' ? 'Time' : h })))); // a test is held, not handed in
-    table.closest('[id$="-part"]').querySelector('.count').textContent = String(items.length).padStart(2, '0');
+    const dueHead = id === 'tests' ? 'Time' : 'Due'; // a test is held, not handed in
+    if (editing()) {
+      table.querySelector('colgroup').replaceChildren(...cols.filter((c) => typed || c !== 'type').map((c) => $('col', { className: c })));
+      table.querySelector('thead').replaceChildren($('tr', {}, done(), ...['Type', 'Course', 'Title', dueHead, 'Time left', 'Weight', 'Mark', '']
+        .filter((h) => typed || h !== 'Type').map((h) => $('th', { textContent: h }))));
+    } else { // view: one line per open item, Course | Title | Due | Time left | Weight
+      table.querySelector('colgroup').replaceChildren(...VIEW_OPEN.map((c) => $('col', { className: c })));
+      table.querySelector('thead').replaceChildren($('tr', {}, ...['Course', 'Title', dueHead, 'Time left', 'Weight'].map((h) => $('th', { textContent: h }))));
+    }
+    // the title count is open items only
+    table.closest('[id$="-part"]').querySelector('.count').textContent = String(items.filter((i) => !i.done).length).padStart(2, '0');
     const late = items.filter(overdue).length;
     const soon = items.filter(upcoming).length;
     const lamp = table.closest('[id$="-part"]').querySelector('.lamp'); // maroon: something overdue; amber: due soon; green: clear
@@ -931,7 +927,11 @@ function render() {
     // view mode: open items here, done ones in the panel's second table; edit mode: everything here
     const open = editing() ? items : items.filter((i) => !i.done);
     const finished = editing() ? [] : items.filter((i) => i.done);
-    table.tBodies[0].replaceChildren(...open.map((i) => toRow(i)).map((tr) => { if (!typed) tr.children[1].remove(); return tr; }));
+    table.tBodies[0].replaceChildren(...open.map((i) => toRow(i)).map((tr) => {
+      if (!editing()) for (const td of [...tr.children]) { if (!VIEW_OPEN.includes(td.className)) td.remove(); }
+      else if (!typed) tr.children[1].remove();
+      return tr;
+    }));
     table.closest('.bezel').hidden = !open.length && !!items.length;
     const doneTable = document.getElementById(`${id}-done`);
     doneTable.closest('.bezel').hidden = !finished.length;
