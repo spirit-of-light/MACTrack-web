@@ -159,30 +159,30 @@ def test_index_single_list():
     assert "textContent: 'Hide done'" in html and "STATES" not in html, "status is not the single Hide done toggle"
     assert "tr.overdue { background: var(--overdue-bg); box-shadow: inset 3px 0 var(--overdue-text); }" in html, "overdue rows not red"
     assert ".chips { display: grid; grid-template-columns: 1fr;" in html, "filter groups are not single columns"
-    head = re.search(r"tip\(\$\('th', \{ textContent: '✓' \}\), 'Done'\).*?\['Type', 'Course', 'Title', 'Due', 'Time left', 'Weight', 'Mark',", html, re.S)
-    assert head, "list columns are not Done | Type | Course | Title | Due | Time left | Weight | Mark"
+    head = re.search(r"tip\(\$\('th', \{ textContent: '✓' \}\), 'Done'\).*?\['Type', 'Course', 'Title', dueHead, 'Time left', 'Weight', 'Mark', ''\]", html, re.S)
+    assert head, "edit-mode columns are not Done | Type | Course | Title | Due | Time left | Weight | Mark"
     assert "upcoming }" not in html and "Upcoming'" not in html, "Upcoming still offered as a status"
     assert html.index('id="calendar"') < html.index('id="courses"'), "calendar is not above the filters"
-    assert re.search(r'<div id="layout">\s*<main>.*?</main>\s*<aside id="filters">', html, re.S), "filters are not a sidebar right of the list"
+    assert re.search(r'<div id="holo"[^>]*>.*?<div id="courses" class="chips".*?<div id="statuses" class="chips"', html, re.S), \
+        "course filter is not in the hologram"
     assert re.search(r'<div id="cal-wrap">.*?id="calendar".*?<div id="layout">\s*<main>\s*<p id="summary"', html, re.S), \
         "top bar is not full width above the list and sidebar"
-    assert "#filters { position: sticky; top: var(--head-top, 0);" in html, "sidebar does not stick below the calendar"
+    assert "#layout:not(.editing) #filters { display: none; }" in html, "the sidebar shows outside edit mode"
     assert "#cal-wrap { position: sticky;" in html, "calendar does not stay in view"
-    assert "margin: 0 1.5rem 1.5rem;" in html and "#top { display: flex; gap: .8rem; align-items: flex-start; padding-top: 1rem; }" in html, \
+    assert "margin: 0 1.5rem 1.5rem;" in html and "#plate { display: flex; align-items: center; gap: 1rem; padding: .7rem 0 .6rem; }" in html, \
         "page top margin makes the top bar jump when it pins"
-    assert "grid-template-columns: repeat(7, var(--day)); grid-auto-rows: var(--day);" in html and "--day: 8.5rem;" in html, \
+    assert "grid-template-columns: 1.5rem repeat(7, var(--day)); grid-auto-rows: var(--day);" in html and "--day: 8.5rem;" in html, \
         "calendar days are not fixed squares"
-    assert ".next { height: calc(2 * var(--day) + 1px);" in html and "#next-test, #next-lab { flex: 1;" in html, \
+    assert ".next { height: calc(2 * var(--day) + 8px);" in html and ".bezel.grow { flex: 1;" in html, \
         "Next test box does not fill the rest of the top bar at the calendar's height"
     assert "dateTime(s.synced_at)" in html and "alignDots(document.getElementById('sources'))" in html, \
         "Last synced is not in the due-date style"
     assert re.search(r"\.items thead th \{ position: sticky; top: var\(--head-top", html), "column titles do not follow scrolling"
     assert 'id="windows"' not in html and "upcomingDays" not in html, "window buttons are back"
     top = re.search(r'<div id="top">(.*?)<div id="layout">', html, re.S)[1]
-    assert top.index('id="calendar"') < top.index('id="cal-nav"') < top.index('id="next-test"'), "arrows are not right of the calendar"
-    assert re.search(r'id="cal-back".*?id="cal-today".*?id="cal-fwd"', top, re.S) and "flex-direction: column; gap: .3rem; } /* up:" in html, \
-        "arrows are not up / today / down in a column"
-    assert "from.getDay() === 0 || from.getDay() === 6" in html and ".day.weekend { background: var(--weekend-bg); }" in html, \
+    assert top.index('id="cal-nav"') < top.index('id="calendar"') < top.index('id="next-test"'), "nav tab is not above the calendar"
+    assert re.search(r'id="cal-back".*?id="cal-today".*?id="cal-fwd"', top, re.S), "arrows are not back / today / forward"
+    assert "from.getDay() === 0 || from.getDay() === 6" in html and ".day.weekend { background: var(--scanlines), var(--weekend-bg); }" in html, \
         "weekend days not grey"
     assert ".sort((a, b) => !!a.done - !!b.done || dueMs(a) - dueMs(b))" in html, "done items not listed after open ones"
     assert re.search(r"<th>Website</th><th>Status</th><th>Last synced</th>", html), "no sync status table"
@@ -220,13 +220,15 @@ def test_index_single_save():
     assert "textContent: 'Save'" not in row and "textContent: 'Delete'" not in row, "per-row Save or Delete button left"
     assert re.search(r'<aside id="filters">\s*<button id="save">', html), "no single Save button at the top of the sidebar"
     assert re.search(r"for \(const \[id, p\] of pending\)", html), "Save does not send every pending row"
-    assert "icon(TRASH)" in row, "delete is not a trash icon"
-    assert re.search(r'<aside id="filters">.*?<form id="add">.*?</aside>', html, re.S), "add-item form is not in the sidebar"
+    assert "icon(...TRASH)" in row, "delete is not a trash icon"
+    assert re.search(r'<aside id="filters">.*?<form id="add">.*?</aside>', html, re.S), "add-item form is not in the edit-mode sidebar"
     assert re.search(r'<select name="course" required', html), "add-item course is not a select"
     assert "appearance: textfield" in html, "number inputs still show increment buttons"
     assert "#layout.editing #filters" not in html, "edit mode moves the filters out of the sidebar"
-    assert ".chips button.course { border-left: 4px solid var(--c); }" in html and "var(--c, var(--text-faint))" not in html, \
-        "grey edge on non-course buttons"
+    assert ".chips button.course::before { background: repeating-linear-gradient(0deg, var(--c)" in html \
+        and "border-bottom: 2px solid var(--c)" in html \
+        and "border-left: 4px solid var(--c)" not in html, "course colour is not in the right-end triangle"
+    assert "rotate(" not in html, "course buttons are tilted again (developer undid that 2026-10-19)"
     assert "#add[hidden] { display: none; }" in html, "add form's display rule overrides hidden in view mode"
 
 
@@ -235,7 +237,7 @@ def test_index_next_blocks_and_row_hover():
     top = re.search(r'<div id="top">(.*?)<div id="layout">', html, re.S)[1]
     assert top.index('id="calendar"') < top.index('id="next-test"') < top.index('id="next-lab"') and 'id="next-up"' not in html, \
         "top bar is not the calendar, Next test, Next lab"
-    assert "#next-test, #next-lab { flex: 1;" in html, "the two boxes do not share the rest of the top bar"
+    assert ".bezel.grow { flex: 1;" in html and html.count("bezel grow") == 2, "the two boxes do not share the rest of the top bar"
     assert "const nextLab = ahead.find(isLab);" in html and "lab ? 'Selected lab' : 'Next lab'" in html, "no Next lab box"
     assert ".next .what { margin-left: auto; text-align: right;" in html, "details are not right-aligned opposite the titles"
     assert "ahead.find((i) => TESTS.includes(i.kind))" in html, "Next test picks the wrong item"
@@ -243,7 +245,8 @@ def test_index_next_blocks_and_row_hover():
     assert "test ? 'Selected test' : 'Next test'" in html and "tr.addEventListener('mouseenter', () => showPicked(i));" in html \
         and "tr.addEventListener('mouseleave', () => showPicked(null));" in html, "hovering a test or lab does not show it in its box"
     assert "container-type: inline-size;" in html and ".next .title { font-size: clamp(" in html, "Next test text does not scale with its box"
-    assert "id === 'tests' && h === 'Due' ? 'Time' : h" in html, "tests table still says Due"
+    assert "const dueHead = id === 'tests' ? 'Date' : 'Due';" in html, "tests table is not headed Date"
+    assert "tr.children[4].textContent = dueText(item.due)[0];" in html, "list rows still show the due time"
     assert "querySelector(`#calendar .day[data-day=\"${day}\"]`)" in html and "cell.dataset.day = day;" in html, \
         "row hover does not highlight its calendar day"
     js = re.search(r"^const roomOf = .*?^\};$", html, re.M | re.S)[0] + """
@@ -271,7 +274,7 @@ def test_index_time_left_refresh():
     assert "render()" not in body and "setInterval" not in html, "refresh rebuilds the page or polls"
     # the wait is the time until the next displayed change: hour steps over a day, minute steps under it
     js = """
-const dueMs = (i) => i.due; let timed, tickTimer; const overdue = () => false, upcoming = () => false, left = () => '';
+const document = { querySelector: () => null }; const dueMs = (i) => i.due; let timed, tickTimer; const overdue = () => false, upcoming = () => false, left = () => '';
 let waited; const setTimeout = (f, ms) => { waited = ms - 50; }; const clearTimeout = () => {};
 const Date = { now: () => 0 };
 const row = () => ({ querySelector: () => ({}), classList: { toggle() {} } });
@@ -291,9 +294,89 @@ def test_index_tooltips_and_more():
     assert not re.search(r"\btitle\s*[:=]\s*[`'(]|\.title\s*=", js) and ' title="' not in html, "a browser title tooltip is left"
     assert '<div id="tip" role="tooltip" hidden></div>' in html and "closest('[data-tip]')" in html, "no page tooltip"
     assert "more.textContent = `+${n} more`;" in html, "full calendar days do not say +N more"
-    more = re.search(r"for \(const day of cal\.children\) \{.*?\n  \}", html, re.S)[0]
+    more = re.search(r"for \(const day of cal\.querySelectorAll\('\.day'\)\) \{.*?\n  \}", html, re.S)[0]
     assert "tip(day," in more and "tip(cell," not in html, "calendar day tooltip shows without +N more"
+    assert "cal.querySelectorAll('.day')" in html, "+N more also runs over the week strips"
     assert html.count('data-tip-delay="1000"') == 3 and "Number(t.dataset.tipDelay) || 0" in html, "nav button tooltips are not delayed 1 s"
+
+
+def test_index_fonts_self_hosted():
+    html = (ROOT / "index.html").read_text()
+    urls = re.findall(r"url\(([^)]+)\)", html)
+    assert urls and all(u.startswith("/assets/fonts/") for u in urls), urls
+    for u in urls:
+        assert (ROOT / u.lstrip("/")).is_file(), f"{u} missing"
+    assert "border-radius" not in html, "rounded corners are back"
+
+
+def test_index_y2k_details():
+    html = (ROOT / "index.html").read_text()
+    plate = re.search(r'<div id="plate">.*?</div>\s*<div id="top">', html, re.S)
+    assert plate and 'id="links"' not in plate[0] and 'id="synced"' in plate[0], "no nameplate strip inside the sticky bar, or its website LEDs are back"
+    assert html.count('<span class="count"></span>') == 3 and "padStart(2, '0')" in html, "section headings have no item counts"
+    assert "(dueMs(i) - Date.now()) / (14 * 864e5)" in html, "Next boxes have no countdown meter"
+    for name in ("EYE", "EYE_SHUT", "PENCIL", "MONITOR", "TRASH", "UP", "DOWN", "RETICLE", "BADGE", "DIAMOND"):
+        assert re.search(rf"^const {name} = \[", html, re.M), f"no {name} icon"
+    assert "'stroke-linejoin': 'miter'" in html, "icons are not angular"
+
+
+def test_index_deeper_details():
+    html = (ROOT / "index.html").read_text()
+    js = re.search(r"^const isoWeek = .*?^\};$", html, re.M | re.S)[0] + """
+console.log(JSON.stringify([isoWeek(new Date(2026, 9, 19)), isoWeek(new Date(2026, 0, 1)), isoWeek(new Date(2027, 0, 3)), isoWeek(new Date(2026, 11, 31))]));"""
+    got = json.loads(subprocess.run(["node", "-e", js], capture_output=True, text=True, check=True).stdout)
+    assert got == [43, 1, 53, 53], got  # 2026-01-01 is a Thursday: week 1; 2027-01-03 still belongs to 2026's week 53
+    assert html.count('<span class="tab">') == 3, "section labels are not tab plates"
+    assert ".list-h::before" not in html and "#tests-part, #labs-part, #work-part { position: relative; isolation: isolate; padding: 7px;" in html, \
+        "block ornaments are back, or sections have no back panel 5px out"
+    assert "button:active:not(:disabled) { transform: translateY(1px);" in html, "buttons do not press in"
+    assert "getElementById('tally').replaceChildren(" in html, "nameplate has no tally"
+    assert html.count('<span class="lamp"></span>') == 3 and "late ? 'error' : soon ? 'login' : 'ok'" in html, "section lamps missing"
+    assert "className: 'gauge'" in html and "--fill', `${pct}%`" in html, "grades have no graded gauge"
+    for screen in ('id="calendar"', 'id="next-test"', 'id="next-lab"', 'id="tests"', 'id="labs"', 'id="items"', 'id="grades"', 'id="sources"'):
+        assert re.search(r'<div class="bezel[^"]*">\s*<[a-z]+ ' + screen, html), f"{screen} is not in a casing"
+    assert "className: `status ${{ ok: 'ok'" in html and "lamp ${{" not in html, "sync table still uses lamps on a screen"
+    assert "cell.append($('i', { className: 'now' }))" in html and "line.style.top" in html, "no now line in today's square"
+
+
+def test_index_hologram_filter():
+    html = (ROOT / "index.html").read_text()
+    nav = re.search(r'<div class="list-h cal-head">\s*<nav id="cal-nav" class="tab">(.*?)</nav>\s*</div>\s*<div class="bezel"><div id="calendar">', html, re.S)
+    assert nav, "calendar navigation is not a tab on top of the calendar casing"
+    ids = re.findall(r'id="([a-z-]+)"', nav[1])
+    assert ids == ["lens", "cal-back", "cal-today", "cal-fwd"], f"tab order: {ids}"
+    assert ".cal-head { --th: 40px; justify-content: flex-end;" in html, "the nav tab is not on the calendar's right edge"
+    body = re.search(r"^async function openHolo\(\) \{.*?^\}$", html, re.M | re.S)[0]
+    assert "at(main, from, mix(from, centre, t))" in body and "at(b, from, mix(centre, corners[k], t))" in body, \
+        "beam does not run lens -> centre, then split at the lens into four running centre -> corners"
+    assert "reveal(t)" in body and "`inset(${(1 - t) * 50}%)`" in html, "panel is not drawn by the beams as they spread"
+    assert "prefers-reduced-motion: reduce" in body and "holdBeams();" in body and "beams.replaceChildren(), 180" not in html, \
+        "beams do not stay on, or motion is not optional"
+    assert "e.key === 'Escape'" in html and "getElementById('holo-backdrop').addEventListener('click', closeHolo)" in html, "hologram cannot be closed"
+    assert 'id="holo-close"' not in html, "the hologram has a Close button again"
+    assert "#beams rect {" in html and "border: 0; /* its border is the frame in #beams" in html, "the panel border is not drawn with the beams"
+    close = re.search(r"^async function closeHolo\(\) \{.*?^\}$", html, re.M | re.S)[0]
+    assert "reveal(t); }, true)" in close and "at(main, from, mix(from, centre, t)), true)" in close \
+        and close.index("corners[k]") < close.index("const main"), "closing is not the opening in reverse"
+    assert "box-shadow: inset 0 0 0 1px var(--holo); } /* marker off" in html and "var(--led-off)" not in re.search(r"\.chips button::after \{[^}]*\}", html)[0], \
+        "hologram buttons still use physical LEDs"
+
+
+def test_index_three_columns():
+    html = (ROOT / "index.html").read_text()
+    pair = re.search(r'<div id="pair">(.*?)<div class="bezel fit"><table id="grades">', html, re.S)[1]
+    assert pair.index('id="tests-part"') < pair.index('id="labs-part"') < pair.index('id="work-part"'), "the three tables are not side by side"
+    assert "const VIEW_OPEN = ['course', 'title', 'due', 'left', 'weight'];" in html and "grid-template-areas" not in html, \
+        "open rows are not one line of Course | Title | Due | Time left | Weight"
+    assert "String(items.filter((i) => !i.done).length).padStart(2, '0')" in html, "title count includes done items"
+    for t in ("tests", "labs", "items"):
+        assert f'<table id="{t}-done" class="items done-list">' in html, f"no done table for {t}"
+    assert "['Course', 'Title', 'Weight', 'Grade']" in html, "done tables are not ✓ | Course | Title | Weight | Grade"
+    js = re.search(r"^const round2 = [^\n]*", html, re.M)[0] + "\n" + re.search(r"^const gradeText = [^\n]*", html, re.M)[0] + """
+console.log(JSON.stringify([gradeText({ mark: 10.5, out_of: 13 }), gradeText({ mark: 7 }), gradeText({}), gradeText({ mark: 0, out_of: 0 })]));"""
+    got = json.loads(subprocess.run(["node", "-e", js], capture_output=True, text=True, check=True).stdout)
+    assert got == ["80.8%", "7", "", "0"], got
+    assert "className: VIEW_CELLS[k]" in html, "view cells have no classes to place them"
 
 
 if __name__ == "__main__":
