@@ -490,6 +490,8 @@
 </div>
 <script>
 'use strict';
+// The MACTrack backend this page reads; override with ?api=http://host:port.
+const API = new URLSearchParams(location.search).get('api') || 'http://127.0.0.1:8000';
 // Spec 0002 AC16: copy of extension/parse.js SITES[*].login; Crowdmark signs in through Avenue (session default).
 const LOGIN = {
   avenue: 'https://avenue.mcmaster.ca/login.php?target=%2Fd2l%2Fhome',
@@ -591,8 +593,8 @@ const joinDue = (date, time) => (date ? new Date(`${date}T${time || '23:59'}`).t
 
 async function load() {
   [data, status] = await Promise.all([
-    fetch('/api/items').then((r) => r.json()),
-    fetch('/api/status').then((r) => r.json()),
+    fetch(API + '/api/items').then((r) => r.json()),
+    fetch(API + '/api/status').then((r) => r.json()),
   ]);
   for (const id of pending.keys()) if (!data.items.some((i) => i.id === id)) pending.delete(id);
   render();
@@ -606,7 +608,7 @@ const parsed = (input) => (input.type === 'checkbox' ? input.checked
 // AC31: one Save for every changed row; each item gets one POST with only its changed fields, then reload.
 async function saveAll() {
   for (const [id, p] of pending) {
-    const r = await fetch(`/api/items/${id}`, {
+    const r = await fetch(`${API}/api/items/${id}`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(p.fields),
     });
     if (!r.ok) { alert(`Save failed: ${r.status}`); break; }
@@ -630,7 +632,7 @@ async function add(ev) {
   }
   const due = joinDue(ev.target.elements.date.value, ev.target.elements.time.value);
   if (due) body.due = due;
-  const r = await fetch('/api/items', {
+  const r = await fetch(API + '/api/items', {
     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
   });
   if (!r.ok) return alert(`Add failed: ${r.status}`);
@@ -641,7 +643,7 @@ async function add(ev) {
 // AC108: only manual items can be deleted.
 async function remove(item) {
   if (!confirm(`Delete "${item.title}"?`)) return;
-  const r = await fetch(`/api/items/${item.id}/delete`, {
+  const r = await fetch(`${API}/api/items/${item.id}/delete`, {
     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}',
   });
   if (!r.ok) alert(`Delete failed: ${r.status}`);
