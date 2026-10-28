@@ -19,4 +19,6 @@ The backend only answers requests from its configured frontend origin
 (default `http://127.0.0.1:8001`). For a backend elsewhere, open the page with
 `?api=http://host:port`.
 
+Checks: `python3 test_page.py` (needs `node` on PATH).
+
 Design notes: [`ai-factory/designs/frontend.md`](ai-factory/designs/frontend.md).
